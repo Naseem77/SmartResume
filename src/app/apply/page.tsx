@@ -66,12 +66,24 @@ export default function ApplyPage() {
     setDownloading(false)
   }
 
+  const stepMap: Record<Step, { num: number; label: string }> = {
+    input:      { num: 1, label: 'Paste a job URL' },
+    generating: { num: 2, label: 'Tailoring your resume' },
+    result:     { num: 3, label: 'Your resume is ready' },
+  }
+  const { num: stepNum, label: stepLabel } = stepMap[step]
+
   return (
     <main className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Generate Resume</h1>
           <p className="text-gray-500 mt-1">Paste a job URL and we'll tailor your resume to match.</p>
+        </div>
+
+        <div className="mb-6 flex gap-2 items-center text-sm text-gray-400">
+          <span className="w-5 h-5 rounded-full bg-teal-600 text-white text-xs flex items-center justify-center font-bold">{stepNum}</span>
+          Step {stepNum} of 3 — {stepLabel}
         </div>
 
         {profileEmpty && (

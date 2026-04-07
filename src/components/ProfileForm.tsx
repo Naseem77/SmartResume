@@ -144,7 +144,10 @@ export default function ProfileForm() {
     <div className="max-w-3xl mx-auto space-y-10">
       {/* Personal Info */}
       <section>
-        <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">Personal Info</h2>
+        <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
+          <span className="w-1.5 h-5 bg-teal-500 rounded-full inline-block" />
+          Personal Info
+        </h2>
         <div className="grid grid-cols-2 gap-4">
           {(['name', 'email', 'phone', 'location', 'linkedin', 'website'] as const).map(f => (
             <div key={f}>
@@ -171,7 +174,10 @@ export default function ProfileForm() {
       {/* Experience */}
       <section>
         <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-          <h2 className="text-xl font-semibold">Experience</h2>
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <span className="w-1.5 h-5 bg-teal-500 rounded-full inline-block" />
+            Experience
+          </h2>
           <button
             onClick={() => updateField('experience', [...profile.experience, { ...emptyExp, bullets: [] }])}
             className="text-sm text-teal-600 hover:text-teal-800 font-medium"
@@ -215,7 +221,10 @@ export default function ProfileForm() {
       {/* Education */}
       <section>
         <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-          <h2 className="text-xl font-semibold">Education</h2>
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <span className="w-1.5 h-5 bg-teal-500 rounded-full inline-block" />
+            Education
+          </h2>
           <button
             onClick={() => updateField('education', [...profile.education, { ...emptyEdu }])}
             className="text-sm text-teal-600 hover:text-teal-800 font-medium"
@@ -249,7 +258,10 @@ export default function ProfileForm() {
 
       {/* Skills */}
       <section>
-        <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">Skills</h2>
+        <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
+          <span className="w-1.5 h-5 bg-teal-500 rounded-full inline-block" />
+          Skills
+        </h2>
         <div className="flex gap-2 mb-3">
           <input
             className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -279,7 +291,10 @@ export default function ProfileForm() {
       {/* Projects */}
       <section>
         <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-          <h2 className="text-xl font-semibold">Projects</h2>
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <span className="w-1.5 h-5 bg-teal-500 rounded-full inline-block" />
+            Projects
+          </h2>
           <button
             onClick={() => updateField('projects', [...profile.projects, { ...emptyProject, technologies: [] }])}
             className="text-sm text-teal-600 hover:text-teal-800 font-medium"

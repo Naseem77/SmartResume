@@ -2,7 +2,7 @@ import type { AtsScore as AtsScoreType } from '@/types/resume'
 
 function grade(score: number) {
   if (score >= 90) return { label: 'A', verdict: 'Excellent', pill: 'bg-green-100 text-green-800' }
-  if (score >= 75) return { label: 'B', verdict: 'Good', pill: 'bg-blue-100 text-blue-800' }
+  if (score >= 75) return { label: 'B', verdict: 'Good', pill: 'bg-teal-100 text-teal-700' }
   if (score >= 60) return { label: 'C', verdict: 'Fair', pill: 'bg-yellow-100 text-yellow-800' }
   return { label: 'D', verdict: 'Needs Work', pill: 'bg-red-100 text-red-800' }
 }
@@ -40,8 +40,8 @@ function ScoreBar({ label, value, tipKey }: { label: string; value: number; tipK
 export default function AtsScore({ atsScore }: { atsScore: AtsScoreType }) {
   const { score, breakdown, suggestions } = atsScore
   const { label, verdict, pill } = grade(score)
-  const ringColor = score >= 90 ? 'border-green-400' : score >= 75 ? 'border-blue-400' : score >= 60 ? 'border-yellow-400' : 'border-red-400'
-  const scoreColor = score >= 90 ? 'text-green-600' : score >= 75 ? 'text-blue-600' : score >= 60 ? 'text-yellow-600' : 'text-red-600'
+  const ringColor = score >= 90 ? 'border-green-400' : score >= 75 ? 'border-teal-400' : score >= 60 ? 'border-yellow-400' : 'border-red-400'
+  const scoreColor = score >= 90 ? 'text-green-600' : score >= 75 ? 'text-teal-600' : score >= 60 ? 'text-yellow-600' : 'text-red-600'
 
   return (
     <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
