@@ -75,14 +75,14 @@ export default function ApplyPage() {
         </div>
 
         {profileEmpty && (
-          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex items-center justify-between">
+          <div className="mb-6 bg-teal-50 border border-teal-200 rounded-xl px-5 py-4 flex items-center justify-between">
             <div>
-              <p className="text-amber-800 font-medium text-sm">Your profile is empty</p>
-              <p className="text-amber-600 text-sm mt-0.5">Fill in your experience, education, and skills so we can tailor your resume.</p>
+              <p className="text-teal-800 font-medium text-sm">Your profile is empty</p>
+              <p className="text-teal-600 text-sm mt-0.5">Fill in your experience, education, and skills so we can tailor your resume.</p>
             </div>
             <Link
               href="/profile"
-              className="ml-6 px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors whitespace-nowrap"
+              className="ml-6 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors whitespace-nowrap"
             >
               Set Up Profile
             </Link>
@@ -104,7 +104,7 @@ export default function ApplyPage() {
 
         {step === 'generating' && (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-16 text-center">
-            <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
             <p className="text-gray-700 font-medium">Tailoring your resume...</p>
             <p className="text-gray-400 text-sm mt-1">This usually takes 15–30 seconds</p>
           </div>
@@ -125,7 +125,7 @@ export default function ApplyPage() {
                 <button
                   onClick={handleDownload}
                   disabled={downloading}
-                  className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  className="px-5 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 disabled:opacity-50 transition-colors"
                 >
                   {downloading ? 'Generating PDF...' : 'Download PDF'}
                 </button>

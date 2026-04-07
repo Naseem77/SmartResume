@@ -19,7 +19,7 @@ function MonthYearSelect({ value, onChange, placeholder }: { value: string; onCh
   const parts = value.split(' ')
   const month = MONTHS.includes(parts[0]) ? parts[0] : ''
   const year = parts[1] || ''
-  const selectClass = "border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+  const selectClass = "border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
   return (
     <div className="flex gap-1.5">
       <select className={selectClass} value={month} onChange={e => onChange(`${e.target.value} ${year}`.trim())}>
@@ -55,7 +55,7 @@ function DateRangePicker({ value, onChange }: { value: string; onChange: (v: str
         <div>
           <p className="text-xs text-gray-500 mb-1">End</p>
           {present
-            ? <span className="text-sm font-medium text-blue-600 px-2 py-1.5 block">Present</span>
+            ? <span className="text-sm font-medium text-teal-600 px-2 py-1.5 block">Present</span>
             : <MonthYearSelect value={end} onChange={v => { setEnd(v); emit(start, v, false) }} placeholder="Year" />
           }
         </div>
@@ -86,11 +86,15 @@ export default function ProfileForm() {
   const [profile, setProfile] = useState<Profile>(emptyProfile)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [hasSaved, setHasSaved] = useState(false)
   const [skillInput, setSkillInput] = useState('')
 
   useEffect(() => {
     fetch('/api/profile').then(r => r.json()).then(data => {
-      if (!data.error) setProfile(data)
+      if (!data.error) {
+        setProfile(data)
+        if (data.name || data.email) setHasSaved(true)
+      }
     })
   }, [])
 
@@ -103,6 +107,7 @@ export default function ProfileForm() {
     })
     setSaving(false)
     setSaved(true)
+    setHasSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
 
@@ -145,7 +150,7 @@ export default function ProfileForm() {
             <div key={f}>
               <label className="block text-sm font-medium text-gray-700 capitalize mb-1">{f}</label>
               <input
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                 value={profile[f]}
                 onChange={e => updateField(f, e.target.value)}
               />
@@ -155,7 +160,7 @@ export default function ProfileForm() {
         <div className="mt-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">Summary</label>
           <textarea
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             rows={3}
             value={profile.summary}
             onChange={e => updateField('summary', e.target.value)}
@@ -169,7 +174,7 @@ export default function ProfileForm() {
           <h2 className="text-xl font-semibold">Experience</h2>
           <button
             onClick={() => updateField('experience', [...profile.experience, { ...emptyExp, bullets: [] }])}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            className="text-sm text-teal-600 hover:text-teal-800 font-medium"
           >+ Add</button>
         </div>
         {profile.experience.map((exp, i) => (
@@ -179,7 +184,7 @@ export default function ProfileForm() {
                 <div key={f}>
                   <label className="block text-xs font-medium text-gray-600 capitalize mb-1">{f}</label>
                   <input
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                     value={exp[f]}
                     onChange={e => updateExp(i, f, e.target.value)}
                   />
@@ -193,7 +198,7 @@ export default function ProfileForm() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Bullets (one per line)</label>
               <textarea
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                 rows={4}
                 value={exp.bullets.join('\n')}
                 onChange={e => updateExp(i, 'bullets', e.target.value.split('\n'))}
@@ -213,7 +218,7 @@ export default function ProfileForm() {
           <h2 className="text-xl font-semibold">Education</h2>
           <button
             onClick={() => updateField('education', [...profile.education, { ...emptyEdu }])}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            className="text-sm text-teal-600 hover:text-teal-800 font-medium"
           >+ Add</button>
         </div>
         {profile.education.map((edu, i) => (
@@ -223,7 +228,7 @@ export default function ProfileForm() {
                 <div key={f}>
                   <label className="block text-xs font-medium text-gray-600 capitalize mb-1">{f}</label>
                   <input
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                     value={edu[f]}
                     onChange={e => updateEdu(i, f, e.target.value)}
                   />
@@ -247,7 +252,7 @@ export default function ProfileForm() {
         <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">Skills</h2>
         <div className="flex gap-2 mb-3">
           <input
-            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             placeholder="Add a skill..."
             value={skillInput}
             onChange={e => setSkillInput(e.target.value)}
@@ -255,16 +260,16 @@ export default function ProfileForm() {
           />
           <button
             onClick={addSkill}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 transition-colors"
           >Add</button>
         </div>
         <div className="flex flex-wrap gap-2">
           {profile.skills.map(skill => (
-            <span key={skill} className="flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+            <span key={skill} className="flex items-center gap-1 bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-sm">
               {skill}
               <button
                 onClick={() => updateField('skills', profile.skills.filter(s => s !== skill))}
-                className="text-blue-600 hover:text-blue-900 font-bold ml-1"
+                className="text-teal-600 hover:text-teal-900 font-bold ml-1"
               >×</button>
             </span>
           ))}
@@ -277,7 +282,7 @@ export default function ProfileForm() {
           <h2 className="text-xl font-semibold">Projects</h2>
           <button
             onClick={() => updateField('projects', [...profile.projects, { ...emptyProject, technologies: [] }])}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            className="text-sm text-teal-600 hover:text-teal-800 font-medium"
           >+ Add</button>
         </div>
         {profile.projects.map((proj, i) => (
@@ -286,7 +291,7 @@ export default function ProfileForm() {
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
                 <input
-                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                   value={proj.name}
                   onChange={e => updateProject(i, 'name', e.target.value)}
                 />
@@ -294,7 +299,7 @@ export default function ProfileForm() {
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">URL</label>
                 <input
-                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                   value={proj.url || ''}
                   onChange={e => updateProject(i, 'url', e.target.value)}
                 />
@@ -303,7 +308,7 @@ export default function ProfileForm() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
               <textarea
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                 rows={2}
                 value={proj.description}
                 onChange={e => updateProject(i, 'description', e.target.value)}
@@ -312,7 +317,7 @@ export default function ProfileForm() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Technologies (comma-separated)</label>
               <input
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                 value={proj.technologies.join(', ')}
                 onChange={e => updateProject(i, 'technologies', e.target.value.split(',').map(t => t.trim()).filter(Boolean))}
               />
@@ -330,11 +335,11 @@ export default function ProfileForm() {
         <button
           onClick={save}
           disabled={saving}
-          className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="px-6 py-2.5 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 disabled:opacity-50 transition-colors"
         >
           {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Profile'}
         </button>
-        {saved && (
+        {hasSaved && (
           <Link
             href="/apply"
             className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"

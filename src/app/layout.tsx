@@ -15,37 +15,29 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SmartResume — AI Resume Tailoring",
-  description:
-    "Generate tailored, ATS-optimized resumes for every job application using AI",
+  description: "Generate tailored, ATS-optimized resumes for every job application using AI",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
-        <nav className="bg-white border-b border-gray-100 px-6 py-3.5 flex items-center justify-between sticky top-0 z-10 shadow-sm">
-          <Link href="/" className="text-xl font-bold text-blue-600 tracking-tight">
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', var(--font-geist-sans), sans-serif" }}>
+        <nav className="bg-white/90 backdrop-blur-sm border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+          <Link href="/" className="text-xl font-bold text-teal-600 tracking-tight">
             SmartResume
           </Link>
-          <div className="flex items-center gap-6 text-sm font-medium">
-            <Link href="/apply" className="text-gray-600 hover:text-blue-600 transition-colors">
-              Generate
-            </Link>
-            <Link href="/profile" className="text-gray-600 hover:text-blue-600 transition-colors">
-              My Profile
-            </Link>
+          <div className="flex items-center gap-3">
             <Link
               href="/apply"
-              className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 border border-teal-600 text-teal-600 rounded-lg text-sm font-semibold hover:bg-teal-50 transition-colors"
             >
-              Get Started
+              Generate Resume
+            </Link>
+            <Link
+              href="/profile"
+              className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700 transition-colors shadow-sm"
+            >
+              My Profile
             </Link>
           </div>
         </nav>
