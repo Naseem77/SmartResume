@@ -63,12 +63,25 @@ Respond with ONLY valid JSON in this exact structure:
 }
 
 function parseJsonResponse(text: string): GenerateResult {
-  const json = text
-    .replace(/^```json\s*/m, '')
-    .replace(/^```\s*/m, '')
-    .replace(/```$/m, '')
-    .trim()
-  return JSON.parse(json) as GenerateResult
+  // Strip markdown code fences anywhere in the string
+  const json = text.replace(/```json\s*/g, '').replace(/```/g, '').trim()
+  const parsed = JSON.parse(json)
+
+  // Ensure atsScore is present and all breakdown fields are valid numbers
+  const score = parsed.atsScore ?? {}
+  const breakdown = score.breakdown ?? {}
+  parsed.atsScore = {
+    score: Number(score.score) || 0,
+    breakdown: {
+      keywordMatch: Number(breakdown.keywordMatch) || 0,
+      sectionCompleteness: Number(breakdown.sectionCompleteness) || 0,
+      formattingCompliance: Number(breakdown.formattingCompliance) || 0,
+      relevance: Number(breakdown.relevance) || 0,
+    },
+    suggestions: Array.isArray(score.suggestions) ? score.suggestions : [],
+  }
+
+  return parsed as GenerateResult
 }
 
 async function generateWithClaude(profile: Profile, jobDescription: string, jobTitle: string): Promise<GenerateResult> {
@@ -89,6 +102,7 @@ async function generateWithOpenAI(profile: Profile, jobDescription: string, jobT
   const response = await client.chat.completions.create({
     model,
     max_tokens: 4096,
+    response_format: { type: 'json_object' },
     messages: [{ role: 'user', content: buildPrompt(profile, jobDescription, jobTitle) }],
   })
   const text = response.choices[0]?.message?.content
