@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import type { Profile, Experience, Education, Project } from '@/types/resume'
 
 const emptyProfile: Profile = {
@@ -248,7 +249,7 @@ export default function ProfileForm() {
       </section>
 
       {/* Save Button */}
-      <div className="flex justify-end pt-4 border-t border-gray-200">
+      <div className="flex justify-between items-center pt-4 border-t border-gray-200">
         <button
           onClick={save}
           disabled={saving}
@@ -256,6 +257,14 @@ export default function ProfileForm() {
         >
           {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Profile'}
         </button>
+        {saved && (
+          <Link
+            href="/apply"
+            className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+          >
+            Next: Generate Resume →
+          </Link>
+        )}
       </div>
     </div>
   )

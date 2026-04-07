@@ -14,27 +14,27 @@ export default function Home() {
           Paste a job URL. Get a tailored, ATS-optimized resume in seconds.
         </p>
         <p className="text-gray-400 text-sm mb-10">
-          Powered by Claude AI • Supports LinkedIn, Glassdoor, Greenhouse, and more
+          Powered by Claude AI &amp; OpenAI • Supports LinkedIn, Glassdoor, Greenhouse, and more
         </p>
         <div className="flex justify-center gap-4">
           <Link
-            href="/apply"
+            href="/profile"
             className="px-8 py-3.5 bg-blue-600 text-white rounded-xl font-semibold text-lg hover:bg-blue-700 transition-colors shadow-md shadow-blue-200"
           >
-            Generate Resume
+            Get Started
           </Link>
           <Link
-            href="/profile"
+            href="/apply"
             className="px-8 py-3.5 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold text-lg hover:border-blue-300 hover:text-blue-700 transition-colors"
           >
-            Edit Profile
+            Generate Resume
           </Link>
         </div>
         <div className="mt-16 grid grid-cols-3 gap-8 text-left">
           {[
+            { title: 'Set up your profile', desc: 'Enter your experience, education, skills, and projects once.' },
             { title: 'Paste a job URL', desc: 'From any job board — or paste the description manually.' },
-            { title: 'AI tailors your resume', desc: 'Keywords matched, bullets rewritten, skills prioritized.' },
-            { title: 'Download & apply', desc: 'Clean ATS-safe PDF ready to submit. Score shown on screen.' },
+            { title: 'Download & apply', desc: 'Tailored ATS-safe PDF with your score, ready to submit.' },
           ].map((step, i) => (
             <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mb-3">

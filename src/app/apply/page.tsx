@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import JobInput from '@/components/JobInput'
 import ResumePreview from '@/components/ResumePreview'
 import AtsScore from '@/components/AtsScore'
@@ -9,10 +11,19 @@ import type { GenerateResult } from '@/types/resume'
 type Step = 'input' | 'generating' | 'result'
 
 export default function ApplyPage() {
+  const router = useRouter()
   const [step, setStep] = useState<Step>('input')
   const [result, setResult] = useState<GenerateResult | null>(null)
   const [downloading, setDownloading] = useState(false)
   const [error, setError] = useState('')
+  const [profileEmpty, setProfileEmpty] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/profile').then(r => r.json()).then(profile => {
+      const isEmpty = !profile.name && !profile.email && profile.experience?.length === 0 && profile.education?.length === 0
+      if (isEmpty) setProfileEmpty(true)
+    }).catch(() => setProfileEmpty(true))
+  }, [])
 
   const handleGenerate = async (jobDescription: string, jobTitle: string) => {
     setStep('generating')
@@ -62,6 +73,21 @@ export default function ApplyPage() {
           <h1 className="text-3xl font-bold text-gray-900">Generate Resume</h1>
           <p className="text-gray-500 mt-1">Paste a job URL and we'll tailor your resume to match.</p>
         </div>
+
+        {profileEmpty && (
+          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex items-center justify-between">
+            <div>
+              <p className="text-amber-800 font-medium text-sm">Your profile is empty</p>
+              <p className="text-amber-600 text-sm mt-0.5">Fill in your experience, education, and skills so we can tailor your resume.</p>
+            </div>
+            <Link
+              href="/profile"
+              className="ml-6 px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors whitespace-nowrap"
+            >
+              Set Up Profile
+            </Link>
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
