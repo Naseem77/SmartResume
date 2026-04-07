@@ -4,6 +4,75 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import type { Profile, Experience, Education, Project } from '@/types/resume'
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const currentYear = new Date().getFullYear()
+const YEARS = Array.from({ length: 40 }, (_, i) => currentYear - i)
+
+function parseDates(dates: string): { start: string; end: string; present: boolean } {
+  // Expects format "Mon YYYY – Mon YYYY" or "Mon YYYY – Present"
+  const parts = dates.split(/\s*[–-]\s*/)
+  const present = parts[1]?.trim().toLowerCase() === 'present'
+  return { start: parts[0]?.trim() || '', end: present ? '' : (parts[1]?.trim() || ''), present }
+}
+
+function MonthYearSelect({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  const parts = value.split(' ')
+  const month = MONTHS.includes(parts[0]) ? parts[0] : ''
+  const year = parts[1] || ''
+  const selectClass = "border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+  return (
+    <div className="flex gap-1.5">
+      <select className={selectClass} value={month} onChange={e => onChange(`${e.target.value} ${year}`.trim())}>
+        <option value="">Month</option>
+        {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+      </select>
+      <select className={selectClass} value={year} onChange={e => onChange(`${month} ${e.target.value}`.trim())}>
+        <option value="">{placeholder || 'Year'}</option>
+        {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+      </select>
+    </div>
+  )
+}
+
+function DateRangePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const parsed = parseDates(value)
+  const [start, setStart] = useState(parsed.start)
+  const [end, setEnd] = useState(parsed.end)
+  const [present, setPresent] = useState(parsed.present)
+
+  const emit = (s: string, e: string, p: boolean) => {
+    onChange(`${s} – ${p ? 'Present' : e}`)
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-3">
+        <div>
+          <p className="text-xs text-gray-500 mb-1">Start</p>
+          <MonthYearSelect value={start} onChange={v => { setStart(v); emit(v, end, present) }} />
+        </div>
+        <div className="mt-4 text-gray-400">–</div>
+        <div>
+          <p className="text-xs text-gray-500 mb-1">End</p>
+          {present
+            ? <span className="text-sm font-medium text-blue-600 px-2 py-1.5 block">Present</span>
+            : <MonthYearSelect value={end} onChange={v => { setEnd(v); emit(start, v, false) }} placeholder="Year" />
+          }
+        </div>
+        <label className="flex items-center gap-1.5 mt-4 cursor-pointer text-sm text-gray-600">
+          <input
+            type="checkbox"
+            checked={present}
+            onChange={e => { setPresent(e.target.checked); emit(start, end, e.target.checked) }}
+            className="rounded"
+          />
+          Present
+        </label>
+      </div>
+    </div>
+  )
+}
+
 const emptyProfile: Profile = {
   name: '', email: '', phone: '', location: '', linkedin: '', website: '',
   summary: '', experience: [], education: [], skills: [], projects: [],
@@ -106,7 +175,7 @@ export default function ProfileForm() {
         {profile.experience.map((exp, i) => (
           <div key={i} className="border border-gray-200 rounded-lg p-4 mb-4 space-y-3 bg-gray-50">
             <div className="grid grid-cols-2 gap-3">
-              {(['title', 'company', 'location', 'dates'] as const).map(f => (
+              {(['title', 'company', 'location'] as const).map(f => (
                 <div key={f}>
                   <label className="block text-xs font-medium text-gray-600 capitalize mb-1">{f}</label>
                   <input
@@ -116,6 +185,10 @@ export default function ProfileForm() {
                   />
                 </div>
               ))}
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Dates</label>
+              <DateRangePicker value={exp.dates} onChange={v => updateExp(i, 'dates', v)} />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Bullets (one per line)</label>
@@ -144,9 +217,9 @@ export default function ProfileForm() {
           >+ Add</button>
         </div>
         {profile.education.map((edu, i) => (
-          <div key={i} className="border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50">
+          <div key={i} className="border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50 space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              {(['school', 'degree', 'field', 'dates'] as const).map(f => (
+              {(['school', 'degree', 'field'] as const).map(f => (
                 <div key={f}>
                   <label className="block text-xs font-medium text-gray-600 capitalize mb-1">{f}</label>
                   <input
@@ -156,6 +229,10 @@ export default function ProfileForm() {
                   />
                 </div>
               ))}
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Dates</label>
+              <DateRangePicker value={edu.dates} onChange={v => updateEdu(i, 'dates', v)} />
             </div>
             <button
               onClick={() => updateField('education', profile.education.filter((_, idx) => idx !== i))}
