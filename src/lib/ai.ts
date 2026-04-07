@@ -17,8 +17,8 @@ ${jobTitle}
 ${jobDescription}
 
 ## Instructions
-1. Rewrite the summary to directly address this specific role
-2. Reorder and rewrite experience bullets to highlight relevant achievements and incorporate job keywords naturally
+1. Rewrite the summary to directly address this specific role. Write it in a natural, human voice — first person is fine, conversational but professional. Avoid AI-sounding phrases like "results-driven", "seasoned professional", "passionate about", "dynamic", "leverage", "spearhead", "synergy", or any corporate buzzwords. It should sound like the candidate wrote it themselves — specific, grounded, and genuine.
+2. Reorder and rewrite experience bullets to highlight relevant achievements and incorporate job keywords naturally. Keep the language direct and human — avoid hollow filler words.
 3. Select and reorder skills to prioritize those mentioned in the job description
 4. Include only the most relevant projects
 5. Keep all factual information accurate — do not invent experience
