@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SmartResume
 
-## Getting Started
+AI-powered resume tailoring. Paste a job URL, get a tailored, ATS-optimized resume in seconds — powered by Claude or OpenAI.
 
-First, run the development server:
+## How it works
+
+1. **Set up your profile** — enter your experience, education, skills, and projects once at `/profile`
+2. **Paste a job URL** — SmartResume scrapes the job description automatically (LinkedIn, Glassdoor, Greenhouse, Lever, etc.). If scraping fails, paste the description manually
+3. **Generate** — AI rewrites your resume to match the role: keywords matched, bullets rewritten, skills prioritized
+4. **Download** — clean, ATS-safe PDF ready to submit. ATS score shown on screen (not in the PDF)
+
+## Setup
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure environment
+
+```bash
+cp .env.local.example .env.local
+```
+
+Edit `.env.local`:
+
+**Using OpenAI:**
+```env
+AI_PROVIDER=openai
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4o
+```
+
+**Using Claude (Anthropic):**
+```env
+AI_PROVIDER=claude
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+### 3. Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/
+│   ├── page.tsx              # Home
+│   ├── profile/page.tsx      # Profile editor
+│   ├── apply/page.tsx        # Generate resume flow
+│   └── api/
+│       ├── profile/          # Read/write profile.json
+│       ├── scrape/           # Fetch job description from URL
+│       ├── generate/         # AI resume + ATS score
+│       └── pdf/              # Puppeteer PDF export
+├── components/
+│   ├── ProfileForm.tsx       # Multi-section profile editor
+│   ├── JobInput.tsx          # URL input + manual fallback
+│   ├── ResumePreview.tsx     # Resume preview
+│   └── AtsScore.tsx          # ATS score card
+└── lib/
+    ├── ai.ts                 # Claude + OpenAI provider
+    ├── scraper.ts            # Cheerio scraper
+    └── resumeTemplate.ts     # ATS-safe HTML/PDF template
 
-## Learn More
+personaldata/
+└── profile.json              # Your base resume data (local, not committed)
+```
 
-To learn more about Next.js, take a look at the following resources:
+## ATS score
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+After generation, the app shows a score (0–100) broken down across:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Keyword match** — how well your resume keywords match the job description
+- **Section completeness** — presence of Summary, Experience, Education, Skills
+- **Formatting compliance** — ATS-safe formatting practices
+- **Role relevance** — overall fit of your experience to the role
 
-## Deploy on Vercel
+The score is displayed on screen only — the downloaded PDF stays clean.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Tech stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Next.js 14](https://nextjs.org) (App Router, TypeScript)
+- [Tailwind CSS](https://tailwindcss.com)
+- [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) / [OpenAI SDK](https://github.com/openai/openai-node)
+- [Cheerio](https://cheerio.js.org) — job page scraping
+- [Puppeteer](https://pptr.dev) — PDF generation
