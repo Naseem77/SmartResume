@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import LinkedInImport from '@/components/LinkedInImport'
 import type { Profile, Experience, Education, Project } from '@/types/resume'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -140,8 +141,27 @@ export default function ProfileForm() {
     setSkillInput('')
   }
 
+  const handleLinkedInImport = (imported: Profile) => {
+    setProfile(p => ({
+      name: imported.name || p.name,
+      email: imported.email || p.email,
+      phone: imported.phone || p.phone,
+      location: imported.location || p.location,
+      linkedin: imported.linkedin || p.linkedin,
+      website: imported.website || p.website,
+      summary: imported.summary || p.summary,
+      experience: imported.experience?.length ? imported.experience : p.experience,
+      education: imported.education?.length ? imported.education : p.education,
+      skills: imported.skills?.length ? imported.skills : p.skills,
+      projects: imported.projects?.length ? imported.projects : p.projects,
+    }))
+  }
+
   return (
     <div className="max-w-3xl mx-auto space-y-10">
+      {/* LinkedIn Import */}
+      <LinkedInImport onImport={handleLinkedInImport} />
+
       {/* Personal Info */}
       <section>
         <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
