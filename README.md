@@ -8,7 +8,7 @@
 
 [![Next.js](https://img.shields.io/badge/Next.js-000000?logo=next.js&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Tests](https://img.shields.io/badge/tests-72%20passing-brightgreen)](#quality--testing)
+[![Tests](https://img.shields.io/badge/tests-97%20passing-brightgreen)](#quality--testing)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 
 </div>
@@ -32,6 +32,9 @@ SmartResume eliminates the most time-consuming part of a job search: producing a
 | **Edit Before Apply** | Tweak the tailored summary and skills in the dashboard, PDF rebuilds instantly |
 | **Application Tracking** | Dashboard with live agent telemetry, search, sorting, statuses, fit scores, ATS breakdowns, and resume PDFs |
 | **Built-In Resilience** | Automatic retries with backoff, cross-board deduplication, and a run lock against concurrent agents |
+| **Smart Filters** | Target roles by years of experience (auto-calculated from your profile) and job posting freshness (last 2h to 7d) |
+| **In-App Settings** | Manage your LLM API key from the Settings page: no `.env` editing required |
+| **Light & Dark Themes** | Full light/dark mode with a one-click toggle in the navbar |
 | **Local-First Data** | Everything stays on your machine: no cloud, no account, full audit trail in `data/` |
 
 ## How It Works
@@ -58,7 +61,7 @@ git clone https://github.com/Naseem77/SmartResume.git
 cd SmartResume
 npm install
 
-# 2. Configure your LLM key
+# 2. Configure your LLM key (or add it later on the /settings page)
 cp .env.local.example .env.local
 # edit .env.local: set OPENAI_API_KEY or ANTHROPIC_API_KEY
 
@@ -68,8 +71,11 @@ npm run dev
 
 Then open [http://localhost:3000](http://localhost:3000):
 
-1. **`/profile`**: enter your experience, education, and skills (or import from LinkedIn), and set your **Job Search Preferences**: titles, locations, keywords, job boards, score thresholds
-2. **`/dashboard`**: press **▶ Start Agent** and choose how many hours to run
+1. **`/profile`**: two tabs in one place
+   - **Profile Details**: experience, education, skills (or import from LinkedIn)
+   - **Job Search Preferences**: titles, locations, keywords, boards, score thresholds, years of experience (auto-calculated from your work history by default), and how fresh postings must be (last 2 hours up to 7 days, or a custom value)
+2. **`/settings`**: optionally store your LLM API key from the UI (it takes precedence over `.env.local`), with masked display, reveal, edit, and delete
+3. **`/dashboard`**: press **▶ Start Agent** and choose how many hours to run
 
 Prefer the terminal? The agent runs standalone:
 
@@ -109,6 +115,8 @@ Simple Easy Apply flows are completed end to end (resume upload and submit). App
 All configuration lives in `.env.local` (see `.env.local.example`).
 
 ### AI Provider (required)
+
+Set the key either in `.env.local` or from the **Settings page** in the UI. A key saved in Settings is stored locally in `personaldata/settings.json` and takes precedence over environment variables.
 
 | Variable | Description |
 |---|---|
@@ -177,23 +185,25 @@ data/
 
 personaldata/
 ├── profile.json               # your base resume data
-└── preferences.json           # titles, keywords, boards, thresholds
+├── preferences.json           # titles, keywords, boards, thresholds, experience + freshness filters
+└── settings.json              # LLM key saved via the Settings page (optional)
 ```
 
 - `data/` and `personaldata/` are excluded from version control
 - No accounts, no telemetry, no third-party storage
 - The only outbound traffic is to your chosen LLM provider and the job boards themselves
+- **Clear All Data** on the dashboard wipes every application, the dedupe ledger, and logs (with confirmation, and refused while the agent is running)
 
 ## Quality & Testing
 
 ```bash
-npm test          # 65 unit tests (vitest)
+npm test          # 90 unit tests (vitest)
 npm run test:e2e  # end-to-end smoke tests (real server + headless browser)
 npm run lint      # ESLint
 npm run build     # production build
 ```
 
-The unit suite covers the persistence layer, job board parsers, match filtering, the ATS fix loop, retry with backoff, cross-board deduplication, cover letter generation, config validation, the agent's time-boxed run loop, failure isolation (one bad job never kills a run), and the one-click apply flow. The E2E suite boots the production server and exercises the dashboard and APIs in a real browser. Run `npm run build` before `npm run test:e2e`.
+The unit suite covers the persistence layer, job board parsers, match filtering, the ATS fix loop, retry with backoff, cross-board deduplication, cover letter generation, config validation, experience-years calculation, LLM settings precedence, the agent's time-boxed run loop, failure isolation (one bad job never kills a run), and the one-click apply flow. The E2E suite boots the production server and exercises the dashboard and APIs in a real browser. Run `npm run build` before `npm run test:e2e`.
 
 ## License
 
