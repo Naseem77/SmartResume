@@ -5,10 +5,13 @@ import type { AgentConfig, AgentStatus } from '@/types/agent'
 import { searchAllSources } from './sources'
 import { matchJob, prefilterJob } from './matcher'
 import { processJob, type PipelineDeps } from './pipeline'
+import { closePdfBrowser } from '@/lib/pdf'
 import {
   appendLog,
+  jobFingerprint,
   loadPreferences,
   loadSeenJobs,
+  loadStatus,
   saveSeenJobs,
   saveStatus,
 } from './store'
@@ -28,6 +31,15 @@ async function loadProfile(): Promise<Profile> {
   )
   const raw = await fs.readFile(profilePath, 'utf-8')
   return JSON.parse(raw)
+}
+
+function isProcessAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch {
+    return false
+  }
 }
 
 const defaultSleep = (ms: number) =>
@@ -60,6 +72,13 @@ export async function runAgent(
       'No job titles configured. Set them in the dashboard (Preferences) or personaldata/preferences.json.'
     )
   }
+
+  // Prevent two agents from running at once
+  const existing = await loadStatus()
+  if (existing?.running && existing.pid && existing.pid !== process.pid && isProcessAlive(existing.pid)) {
+    throw new Error(`Agent is already running (pid ${existing.pid}). Stop it first.`)
+  }
+
   const profile = await loadProfile()
 
   const startedAt = now()
@@ -104,15 +123,20 @@ export async function runAgent(
       await update(`Cycle ${status.cycle}: searching job boards`)
 
       const jobs = await search(prefs, (msg) => void log(msg))
-      const fresh = jobs.filter((job) => !seen.has(job.id))
+      const fresh = jobs.filter(
+        (job) => !seen.has(job.id) && !seen.has(jobFingerprint(job))
+      )
       status.jobsSeen += fresh.length
       await log(`Cycle ${status.cycle}: ${jobs.length} listings, ${fresh.length} new`)
 
       for (const job of fresh) {
         if (now() >= endsAt || stopRequested) break
         if (status.applications >= config.maxApplications) break
+        // A duplicate of a job processed earlier in this same batch (cross-board)
+        if (seen.has(job.id) || seen.has(jobFingerprint(job))) continue
 
         seen.add(job.id)
+        seen.add(jobFingerprint(job))
 
         try {
           if (!prefilterJob(job, prefs)) {
@@ -169,6 +193,7 @@ export async function runAgent(
     await log(
       `Agent stopped. Cycles: ${status.cycle}, new jobs seen: ${status.jobsSeen}, matched: ${status.jobsMatched}, applications: ${status.applications}`
     )
+    await closePdfBrowser().catch(() => {})
   }
 
   return status

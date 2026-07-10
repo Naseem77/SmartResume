@@ -30,11 +30,11 @@ afterEach(async () => {
   await fs.rm(tmpDir, { recursive: true, force: true })
 })
 
-const listing = (id: string): JobListing => ({
+const listing = (id: string, company = `Acme ${id}`): JobListing => ({
   id,
   source: 'linkedin',
   title: 'Frontend Engineer',
-  company: 'Acme',
+  company,
   location: 'Remote',
   url: 'https://example.com/job',
   description: 'A long enough description. '.repeat(20),
@@ -132,5 +132,29 @@ describe('runAgent', () => {
     const status = await runAgent({ hours: 1, pollMinutes: 1, maxApplications: 5 }, deps)
     expect(status.applications).toBe(1)
     expect(status.lastError).toContain('LLM exploded')
+  })
+
+  it('dedupes the same job across boards by company+title fingerprint', async () => {
+    const indeedCopy: JobListing = { ...listing('indeed-99', 'Acme job-1'), source: 'indeed' }
+    const deps = makeDeps({
+      search: vi.fn().mockResolvedValue([listing('job-1'), indeedCopy]),
+    })
+    const status = await runAgent({ hours: 1, pollMinutes: 1, maxApplications: 5 }, deps)
+    // both share company Acme + title Frontend Engineer, so only one gets processed
+    expect(status.applications).toBe(1)
+    expect(deps.match).toHaveBeenCalledTimes(1)
+  })
+
+  it('refuses to start when another agent is already running', async () => {
+    await fs.mkdir(path.join(tmpDir, 'data'), { recursive: true })
+    // parent process pid: alive and guaranteed different from this process
+    await fs.writeFile(
+      path.join(tmpDir, 'data', 'agent-status.json'),
+      JSON.stringify({ running: true, pid: process.ppid, updatedAt: new Date().toISOString() })
+    )
+    const deps = makeDeps()
+    await expect(runAgent({ hours: 1, pollMinutes: 1, maxApplications: 5 }, deps)).rejects.toThrow(
+      /already running/
+    )
   })
 })
