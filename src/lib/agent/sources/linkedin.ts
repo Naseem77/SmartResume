@@ -1,9 +1,14 @@
 import * as cheerio from 'cheerio'
 import type { JobListing, SearchPreferences } from '@/types/agent'
 import type { JobSource } from './types'
+import { withRetry } from '../retry'
 
 const GUEST_SEARCH_URL =
   'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search'
+
+/** Result pages fetched per title/location (25 listings each). */
+const PAGES = 3
+const PAGE_SIZE = 25
 
 const HEADERS = {
   'User-Agent':
@@ -48,20 +53,30 @@ async function searchLinkedIn(
   const locations = prefs.locations.length ? prefs.locations : ['']
 
   for (const location of locations) {
-    const params = new URLSearchParams({
-      keywords: title,
-      start: '0',
-      f_TPR: 'r86400', // last 24h
-    })
-    if (location) params.set('location', location)
-    if (prefs.remoteOnly) params.set('f_WT', '2')
+    for (let page = 0; page < PAGES; page++) {
+      const params = new URLSearchParams({
+        keywords: title,
+        start: String(page * PAGE_SIZE),
+        f_TPR: 'r86400', // last 24h
+      })
+      if (location) params.set('location', location)
+      if (prefs.remoteOnly) params.set('f_WT', '2')
 
-    const response = await fetch(`${GUEST_SEARCH_URL}?${params}`, {
-      headers: HEADERS,
-      signal: AbortSignal.timeout(15000),
-    })
-    if (!response.ok) continue
-    results.push(...parseLinkedInSearchHtml(await response.text()))
+      const pageJobs = await withRetry(async () => {
+        const response = await fetch(`${GUEST_SEARCH_URL}?${params}`, {
+          headers: HEADERS,
+          signal: AbortSignal.timeout(15000),
+        })
+        if (response.status === 429 || response.status >= 500) {
+          throw new Error(`LinkedIn HTTP ${response.status}`)
+        }
+        if (!response.ok) return []
+        return parseLinkedInSearchHtml(await response.text())
+      }, { attempts: 3 }).catch(() => [] as JobListing[])
+
+      results.push(...pageJobs)
+      if (pageJobs.length < PAGE_SIZE) break // last page reached
+    }
   }
 
   return results

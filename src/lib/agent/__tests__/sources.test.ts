@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { parseLinkedInSearchHtml } from '../sources/linkedin'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { linkedinSource, parseLinkedInSearchHtml } from '../sources/linkedin'
 import { parseAllJobsHtml } from '../sources/alljobs'
 
 const LINKEDIN_FIXTURE = `
@@ -64,5 +64,61 @@ describe('parseAllJobsHtml', () => {
       location: 'Haifa',
       url: 'https://www.alljobs.co.il/Search/UploadSingle.aspx?JobID=555123',
     })
+  })
+})
+
+describe('linkedin pagination', () => {
+  const card = (id: number) => `
+    <li>
+      <div class="base-card" data-entity-urn="urn:li:jobPosting:${id}">
+        <a class="base-card__full-link" href="https://www.linkedin.com/jobs/view/role-at-co-${id}">link</a>
+        <h3 class="base-search-card__title">Role ${id}</h3>
+        <h4 class="base-search-card__subtitle">Co ${id}</h4>
+        <span class="job-search-card__location">Remote</span>
+      </div>
+    </li>`
+  const page = (start: number, count: number) =>
+    `<ul>${Array.from({ length: count }, (_, i) => card(start + i)).join('')}</ul>`
+
+  const prefs = { locations: [], remoteOnly: false } as unknown as Parameters<
+    typeof linkedinSource.search
+  >[1]
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('fetches subsequent pages until a partial page is returned', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => page(0, 25) })
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => page(25, 3) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const jobs = await linkedinSource.search('Engineer', prefs)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(jobs).toHaveLength(28)
+    expect(String(fetchMock.mock.calls[0][0])).toContain('start=0')
+    expect(String(fetchMock.mock.calls[1][0])).toContain('start=25')
+  })
+
+  it('stops after the first page when results are partial', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, status: 200, text: async () => page(0, 10) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const jobs = await linkedinSource.search('Engineer', prefs)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(jobs).toHaveLength(10)
+  })
+
+  it('returns empty on persistent server errors instead of throwing', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 503, text: async () => '' })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const jobs = await linkedinSource.search('Engineer', prefs)
+    expect(jobs).toEqual([])
+    expect(fetchMock).toHaveBeenCalledTimes(3) // 3 retry attempts
   })
 })
