@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { AgentStatus, ApplicationRecord } from '@/types/agent'
 
 const STATUS_STYLES: Record<string, { label: string; classes: string }> = {
@@ -217,6 +217,58 @@ function DetailDrawer({
 }) {
   const [applying, setApplying] = useState(false)
   const [applyError, setApplyError] = useState('')
+  const [editing, setEditing] = useState(false)
+  const [editSummary, setEditSummary] = useState('')
+  const [editSkills, setEditSkills] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [coverCopied, setCoverCopied] = useState(false)
+
+  const startEditing = () => {
+    setEditSummary(record.resume.summary)
+    setEditSkills(record.resume.skills.join(', '))
+    setSaveError('')
+    setEditing(true)
+  }
+
+  const saveResume = async () => {
+    setSaving(true)
+    setSaveError('')
+    try {
+      const updatedResume = {
+        ...record.resume,
+        summary: editSummary,
+        skills: editSkills.split(',').map((s) => s.trim()).filter(Boolean),
+      }
+      const res = await fetch(`/api/applications/${record.id}/resume`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resume: updatedResume }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setSaveError(data.error || 'Save failed')
+      } else {
+        onApplied(data)
+        setEditing(false)
+      }
+    } catch {
+      setSaveError('Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const copyCoverLetter = async () => {
+    if (!record.coverLetter) return
+    try {
+      await navigator.clipboard.writeText(record.coverLetter)
+      setCoverCopied(true)
+      setTimeout(() => setCoverCopied(false), 1500)
+    } catch {
+      // clipboard unavailable
+    }
+  }
 
   const applyNow = async () => {
     setApplying(true)
@@ -326,6 +378,78 @@ function DetailDrawer({
             </div>
           )}
 
+          {record.coverLetter && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-zinc-500 uppercase tracking-wider">Cover letter</p>
+                <button
+                  onClick={copyCoverLetter}
+                  className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold"
+                >
+                  {coverCopied ? 'Copied ✓' : 'Copy'}
+                </button>
+              </div>
+              <p className="text-sm text-zinc-300 whitespace-pre-wrap bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 max-h-56 overflow-y-auto">
+                {record.coverLetter}
+              </p>
+            </div>
+          )}
+
+          {record.status !== 'applied' && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-zinc-500 uppercase tracking-wider">Resume</p>
+                {!editing && (
+                  <button
+                    onClick={startEditing}
+                    className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold"
+                  >
+                    ✏️ Edit before applying
+                  </button>
+                )}
+              </div>
+              {editing && (
+                <div className="space-y-3 bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                  <div>
+                    <label className="text-xs text-zinc-400 block mb-1">Summary</label>
+                    <textarea
+                      value={editSummary}
+                      onChange={(e) => setEditSummary(e.target.value)}
+                      rows={4}
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-400 block mb-1">Skills (comma-separated)</label>
+                    <textarea
+                      value={editSkills}
+                      onChange={(e) => setEditSkills(e.target.value)}
+                      rows={3}
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  {saveError && <p className="text-xs text-rose-300">{saveError}</p>}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={saveResume}
+                      disabled={saving}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-500 text-zinc-950 text-xs font-bold hover:bg-emerald-400 transition-colors disabled:opacity-50"
+                    >
+                      {saving ? 'Saving & rebuilding PDF…' : 'Save & rebuild PDF'}
+                    </button>
+                    <button
+                      onClick={() => setEditing(false)}
+                      disabled={saving}
+                      className="px-3 py-1.5 rounded-lg border border-zinc-700 text-zinc-400 text-xs font-semibold hover:border-zinc-500 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex flex-wrap gap-2">
             {(record.status === 'collected' || record.status === 'prepared') && (
               <button
@@ -373,7 +497,10 @@ export default function DashboardPage() {
   const [applications, setApplications] = useState<ApplicationRecord[]>([])
   const [selected, setSelected] = useState<ApplicationRecord | null>(null)
   const [filter, setFilter] = useState<string>('all')
+  const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState<'date' | 'fit' | 'ats'>('date')
   const [loaded, setLoaded] = useState(false)
+  const prevCountRef = useRef<number | null>(null)
 
   const refresh = useCallback(async () => {
     try {
@@ -398,10 +525,42 @@ export default function DashboardPage() {
     return () => clearInterval(timer)
   }, [refresh])
 
-  const filtered = useMemo(
-    () => (filter === 'all' ? applications : applications.filter((a) => a.status === filter)),
-    [applications, filter]
-  )
+  // Desktop notification when the agent adds a new application
+  useEffect(() => {
+    if (!loaded) return
+    const prev = prevCountRef.current
+    prevCountRef.current = applications.length
+    if (prev === null || applications.length <= prev) return
+    if (typeof Notification === 'undefined') return
+    if (Notification.permission === 'default') {
+      Notification.requestPermission()
+      return
+    }
+    if (Notification.permission === 'granted') {
+      const latest = applications[0]
+      new Notification('SmartResume: new application', {
+        body: latest ? `${latest.job.title} @ ${latest.job.company}` : `${applications.length - prev} new`,
+      })
+    }
+  }, [applications, loaded])
+
+  const filtered = useMemo(() => {
+    let list = filter === 'all' ? applications : applications.filter((a) => a.status === filter)
+    const q = search.trim().toLowerCase()
+    if (q) {
+      list = list.filter(
+        (a) =>
+          a.job.title.toLowerCase().includes(q) ||
+          a.job.company.toLowerCase().includes(q) ||
+          (a.job.location || '').toLowerCase().includes(q)
+      )
+    }
+    const sorted = [...list]
+    if (sortBy === 'fit') sorted.sort((a, b) => (b.fitScore ?? 0) - (a.fitScore ?? 0))
+    else if (sortBy === 'ats') sorted.sort((a, b) => (b.atsScore?.score ?? 0) - (a.atsScore?.score ?? 0))
+    else sorted.sort((a, b) => (b.appliedAt || '').localeCompare(a.appliedAt || ''))
+    return sorted
+  }, [applications, filter, search, sortBy])
 
   const counts = useMemo(() => {
     const map: Record<string, number> = { all: applications.length }
@@ -442,6 +601,24 @@ export default function DashboardPage() {
                 <span className="ml-1.5 font-mono">{counts[key] || 0}</span>
               </button>
             ))}
+            <div className="ml-auto flex items-center gap-2">
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search title, company…"
+                className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-emerald-500 w-48"
+              />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'date' | 'fit' | 'ats')}
+                className="bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-emerald-500"
+              >
+                <option value="date">Newest first</option>
+                <option value="fit">Best fit</option>
+                <option value="ats">Highest ATS</option>
+              </select>
+            </div>
           </div>
 
           {!loaded ? (
