@@ -50,9 +50,9 @@ export default function Home() {
         {/* Feature highlights */}
         <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
           {[
-            { icon: '🔒', label: 'No account needed', sub: 'Data stays on your machine' },
-            { icon: '🌐', label: 'Any job board', sub: 'LinkedIn, Glassdoor, Greenhouse...' },
-            { icon: '📄', label: 'Clean PDF export', sub: 'ATS-safe formatting' },
+            { icon: '🤖', label: 'Auto-apply agent', sub: 'Hunts and applies for hours, hands-free' },
+            { icon: '🌐', label: 'Any job board', sub: 'LinkedIn, Glassdoor, Indeed, AllJobs' },
+            { icon: '📄', label: 'Clean PDF export', sub: 'ATS-checked and auto-fixed' },
           ].map(f => (
             <div key={f.label} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm text-left">
               <span className="text-2xl">{f.icon}</span>
@@ -67,9 +67,9 @@ export default function Home() {
         {/* Steps */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-left">
           {[
-            { num: '1', title: 'Set up your profile', desc: 'Enter your experience, education, and skills once. We save it locally — no account needed.' },
-            { num: '2', title: 'Paste a job URL', desc: 'From any job board. We scrape the description automatically — or paste it manually.' },
-            { num: '3', title: 'Download & apply', desc: 'AI tailors your resume to the role. Get an ATS score, then download a clean PDF.' },
+            { num: '1', title: 'Set up profile + preferences', desc: 'Enter your experience once, plus the job titles and keywords you want. Saved locally, no account.' },
+            { num: '2', title: 'Start the agent', desc: 'Run "npm run agent -- 3" or press Start on the dashboard. It searches, matches, tailors, ATS-checks, and applies.' },
+            { num: '3', title: 'Track everything', desc: 'Every application saved to data/ with its resume PDF. Review them all on the dashboard.' },
           ].map(step => (
             <div key={step.num} className="bg-white rounded-2xl border border-l-4 border-gray-100 border-l-teal-500 shadow-sm p-6 hover:shadow-md hover:border-teal-300 transition-all">
               <div className="w-9 h-9 bg-teal-600 text-white rounded-xl flex items-center justify-center text-sm font-bold mb-4">

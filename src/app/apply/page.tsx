@@ -78,7 +78,7 @@ export default function ApplyPage() {
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Generate Resume</h1>
-          <p className="text-gray-500 mt-1">Paste a job URL and we'll tailor your resume to match.</p>
+          <p className="text-gray-500 mt-1">Paste a job URL and we&apos;ll tailor your resume to match.</p>
         </div>
 
         <div className="mb-6 flex gap-2 items-center text-sm text-gray-400">

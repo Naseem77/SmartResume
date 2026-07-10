@@ -28,6 +28,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </Link>
           <div className="flex items-center gap-3">
             <Link
+              href="/dashboard"
+              className="px-4 py-2 text-gray-600 rounded-lg text-sm font-semibold hover:text-teal-700 hover:bg-teal-50 transition-colors"
+            >
+              Dashboard
+            </Link>
+            <Link
               href="/apply"
               className="px-4 py-2 border border-teal-600 text-teal-600 rounded-lg text-sm font-semibold hover:bg-teal-50 transition-colors"
             >

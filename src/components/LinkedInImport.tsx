@@ -55,7 +55,7 @@ export default function LinkedInImport({ onImport }: Props) {
       </div>
 
       <p className="text-xs text-teal-600 leading-relaxed">
-        We'll try to fetch your public profile. This may not work if LinkedIn blocks the request — your existing data won't be affected.
+        We&apos;ll try to fetch your public profile. This may not work if LinkedIn blocks the request — your existing data won&apos;t be affected.
       </p>
 
       <div className="flex gap-2">

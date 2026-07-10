@@ -1,4 +1,5 @@
 import ProfileForm from '@/components/ProfileForm'
+import PreferencesForm from '@/components/PreferencesForm'
 
 export default function ProfilePage() {
   return (
@@ -12,6 +13,9 @@ export default function ProfilePage() {
           <p className="text-gray-500 mt-1">Your base resume info. Fill this in once — we do the rest for each job.</p>
         </div>
         <ProfileForm />
+        <div className="mt-10">
+          <PreferencesForm />
+        </div>
       </div>
     </main>
   )
