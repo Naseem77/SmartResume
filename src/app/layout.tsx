@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,39 +14,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SmartResume — AI Resume Tailoring",
+  title: "SmartResume · AI Resume Tailoring",
   description: "Generate tailored, ATS-optimized resumes for every job application using AI",
 };
 
+const themeInit = `
+try {
+  if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+} catch (e) {}
+`;
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
+      </head>
       <body className="min-h-full flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', var(--font-geist-sans), sans-serif" }}>
-        <nav className="bg-white/90 backdrop-blur-sm border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-10 shadow-sm">
-          <Link href="/" className="text-xl font-bold text-teal-600 tracking-tight">
-            SmartResume
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard"
-              className="px-4 py-2 text-gray-600 rounded-lg text-sm font-semibold hover:text-teal-700 hover:bg-teal-50 transition-colors"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/apply"
-              className="px-4 py-2 border border-teal-600 text-teal-600 rounded-lg text-sm font-semibold hover:bg-teal-50 transition-colors"
-            >
-              Generate Resume
-            </Link>
-            <Link
-              href="/profile"
-              className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700 transition-colors shadow-sm"
-            >
-              My Profile
-            </Link>
-          </div>
-        </nav>
+        <Navbar />
         {children}
       </body>
     </html>
