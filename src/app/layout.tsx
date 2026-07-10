@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
@@ -27,10 +28,8 @@ try {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
-      </head>
       <body className="min-h-full flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', var(--font-geist-sans), sans-serif" }}>
+        <Script id="theme-init" strategy="beforeInteractive">{themeInit}</Script>
         <Navbar />
         {children}
       </body>
