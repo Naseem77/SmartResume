@@ -157,4 +157,23 @@ describe('runAgent', () => {
       /already running/
     )
   })
+
+  it('wakes from the between-cycle sleep immediately on SIGTERM', async () => {
+    // A sleep that never resolves on its own: only the stop signal can end the run
+    const deps = makeDeps({
+      match: vi.fn().mockResolvedValue({ fit: 20, reasons: ['weak'], shouldApply: false }),
+      sleep: vi.fn(() => new Promise<void>(() => {})),
+      now: vi.fn(() => Date.now()), // real clock so the 1h window never expires in-test
+    })
+    const run = runAgent({ hours: 1, pollMinutes: 20, maxApplications: 5 }, deps)
+    // let the loop reach the sleep, then signal
+    await new Promise((r) => setTimeout(r, 100))
+    process.emit('SIGTERM')
+    const status = await Promise.race([
+      run,
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('stop signal ignored')), 3000)),
+    ])
+    expect(status.running).toBe(false)
+    expect(status.lastActivity).toContain('Stopped by user')
+  }, 10000)
 })

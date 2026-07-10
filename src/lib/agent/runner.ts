@@ -87,8 +87,10 @@ export async function runAgent(
   const seen = await loadSeenJobs()
 
   let stopRequested = false
+  let interruptSleep: (() => void) | undefined
   const requestStop = () => {
     stopRequested = true
+    interruptSleep?.()
   }
   process.on('SIGINT', requestStop)
   process.on('SIGTERM', requestStop)
@@ -176,7 +178,15 @@ export async function runAgent(
         const wait = Math.min(pollMs, remaining)
         if (wait <= 0) break
         await update(`Sleeping ${Math.round(wait / 60000)}min until next cycle`)
-        await sleep(wait)
+        // Interruptible sleep: a stop signal wakes the loop immediately
+        await Promise.race([
+          sleep(wait),
+          new Promise<void>((resolve) => {
+            interruptSleep = resolve
+            if (stopRequested) resolve()
+          }),
+        ])
+        interruptSleep = undefined
       }
     }
   } finally {
