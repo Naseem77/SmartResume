@@ -70,6 +70,7 @@ function AgentPanel({
   const [hours, setHours] = useState(3)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [confirmStop, setConfirmStop] = useState(false)
   const running = Boolean(status?.running)
 
   const act = async (body: object) => {
@@ -130,7 +131,7 @@ function AgentPanel({
         <div className="flex items-center gap-2">
           {running ? (
             <button
-              onClick={() => act({ action: 'stop' })}
+              onClick={() => setConfirmStop(true)}
               disabled={busy}
               className="px-4 py-2 rounded-lg bg-rose-500/15 border border-rose-500/40 text-rose-300 text-sm font-semibold hover:bg-rose-500/25 transition-colors disabled:opacity-50"
             >
@@ -192,6 +193,40 @@ function AgentPanel({
           )}
         </div>
       </div>
+
+      {confirmStop && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setConfirmStop(false)}
+          />
+          <div className="relative bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6">
+            <p className="text-3xl mb-3">🛑</p>
+            <h3 className="text-lg font-bold text-zinc-100 mb-1">Stop the agent?</h3>
+            <p className="text-sm text-zinc-400 mb-5">
+              The current run will end immediately. Everything already collected or applied stays saved, and you can start a new run anytime.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setConfirmStop(false)}
+                className="px-4 py-2 rounded-lg border border-zinc-700 text-zinc-300 text-sm font-semibold hover:border-zinc-500 transition-colors"
+              >
+                Keep Running
+              </button>
+              <button
+                onClick={() => {
+                  setConfirmStop(false)
+                  act({ action: 'stop' })
+                }}
+                disabled={busy}
+                className="px-4 py-2 rounded-lg bg-rose-500 text-white text-sm font-bold hover:bg-rose-400 transition-colors disabled:opacity-50"
+              >
+                Yes, Stop Agent
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
