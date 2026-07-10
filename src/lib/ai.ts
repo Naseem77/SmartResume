@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
 import type { Profile, GenerateResult } from '@/types/resume'
 import { withRetry } from '@/lib/agent/retry'
+import { resolveAiConfig } from '@/lib/settings'
 
 export interface CompleteOptions {
   /** Override the model, e.g. a cheaper one for lightweight tasks. */
@@ -10,11 +11,11 @@ export interface CompleteOptions {
 
 /** Sends a prompt to the configured provider and returns the raw text reply. Retries transient failures. */
 export async function completeText(prompt: string, options: CompleteOptions = {}): Promise<string> {
-  const provider = process.env.AI_PROVIDER || 'claude'
+  const config = await resolveAiConfig()
   return withRetry(async () => {
-    if (provider === 'openai') {
-      const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-      const model = options.model || process.env.OPENAI_MODEL || 'gpt-4o'
+    if (config.provider === 'openai') {
+      const client = new OpenAI({ apiKey: config.apiKey })
+      const model = options.model || config.model || 'gpt-4o'
       const response = await client.chat.completions.create({
         model,
         max_tokens: 4096,
@@ -25,9 +26,9 @@ export async function completeText(prompt: string, options: CompleteOptions = {}
       if (!text) throw new Error('Empty response from OpenAI')
       return text
     }
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+    const client = new Anthropic({ apiKey: config.apiKey })
     const message = await client.messages.create({
-      model: options.model || 'claude-opus-4-6',
+      model: options.model || config.model || 'claude-opus-4-6',
       max_tokens: 4096,
       messages: [{ role: 'user', content: prompt }],
     })

@@ -3,6 +3,7 @@ import { spawn } from 'child_process'
 import path from 'path'
 import { loadStatus, saveStatus, readLogTail } from '@/lib/agent/store'
 import { validateEnv } from '@/lib/config'
+import { loadLlmSettings } from '@/lib/settings'
 
 function isProcessAlive(pid: number): boolean {
   try {
@@ -30,7 +31,11 @@ export async function POST(request: Request) {
     const action: string = body.action
 
     if (action === 'start') {
-      const envIssues = validateEnv()
+      const stored = await loadLlmSettings()
+      const envIssues = validateEnv(process.env, {
+        provider: stored.provider,
+        hasApiKey: Boolean(stored.apiKey),
+      })
       if (envIssues.length > 0) {
         return NextResponse.json(
           { error: `Configuration error: ${envIssues.map((i) => `${i.variable} ${i.message}`).join('; ')}` },

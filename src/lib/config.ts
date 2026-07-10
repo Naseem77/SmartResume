@@ -5,18 +5,26 @@ export interface EnvIssue {
   message: string
 }
 
-export function validateEnv(env: NodeJS.ProcessEnv = process.env): EnvIssue[] {
+export interface StoredKeyInfo {
+  provider?: 'claude' | 'openai'
+  hasApiKey?: boolean
+}
+
+export function validateEnv(
+  env: NodeJS.ProcessEnv = process.env,
+  stored: StoredKeyInfo = {}
+): EnvIssue[] {
   const issues: EnvIssue[] = []
 
-  const provider = env.AI_PROVIDER || 'claude'
+  const provider = stored.provider || env.AI_PROVIDER || 'claude'
   if (provider !== 'claude' && provider !== 'openai') {
     issues.push({ variable: 'AI_PROVIDER', message: `must be "claude" or "openai", got "${provider}"` })
   }
-  if (provider === 'openai' && !env.OPENAI_API_KEY) {
-    issues.push({ variable: 'OPENAI_API_KEY', message: 'required when AI_PROVIDER=openai' })
+  if (provider === 'openai' && !env.OPENAI_API_KEY && !stored.hasApiKey) {
+    issues.push({ variable: 'OPENAI_API_KEY', message: 'required when AI_PROVIDER=openai (set it in .env.local or the Settings page)' })
   }
-  if (provider === 'claude' && !env.ANTHROPIC_API_KEY) {
-    issues.push({ variable: 'ANTHROPIC_API_KEY', message: 'required when AI_PROVIDER=claude' })
+  if (provider === 'claude' && !env.ANTHROPIC_API_KEY && !stored.hasApiKey) {
+    issues.push({ variable: 'ANTHROPIC_API_KEY', message: 'required when AI_PROVIDER=claude (set it in .env.local or the Settings page)' })
   }
 
   for (const key of ['AGENT_RUN_HOURS', 'AGENT_POLL_MINUTES', 'AGENT_MAX_APPLICATIONS'] as const) {
@@ -44,8 +52,8 @@ export function validateEnv(env: NodeJS.ProcessEnv = process.env): EnvIssue[] {
 }
 
 /** Throws with a readable message when the environment is misconfigured. */
-export function assertValidEnv(env: NodeJS.ProcessEnv = process.env): void {
-  const issues = validateEnv(env)
+export function assertValidEnv(env: NodeJS.ProcessEnv = process.env, stored: StoredKeyInfo = {}): void {
+  const issues = validateEnv(env, stored)
   if (issues.length > 0) {
     throw new Error(
       `Invalid configuration in .env.local:\n${issues.map((i) => `  - ${i.variable}: ${i.message}`).join('\n')}`
