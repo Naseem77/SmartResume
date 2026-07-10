@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import JobInput from '@/components/JobInput'
 import ResumePreview from '@/components/ResumePreview'
@@ -11,7 +10,6 @@ import type { GenerateResult } from '@/types/resume'
 type Step = 'input' | 'generating' | 'result'
 
 export default function ApplyPage() {
-  const router = useRouter()
   const [step, setStep] = useState<Step>('input')
   const [result, setResult] = useState<GenerateResult | null>(null)
   const [downloading, setDownloading] = useState(false)

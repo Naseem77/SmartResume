@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   try {
     const { resume, jobTitle }: { resume: TailoredResume; jobTitle: string } = await request.json()
 
-    const html = buildResumeHtml(resume, jobTitle)
+    const html = buildResumeHtml(resume)
     const pdf = await renderPdf(html)
 
     const filename = `resume-${(jobTitle || 'resume').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`

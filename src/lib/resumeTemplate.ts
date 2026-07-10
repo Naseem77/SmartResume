@@ -1,6 +1,6 @@
 import type { TailoredResume } from '@/types/resume'
 
-export function buildResumeHtml(resume: TailoredResume, jobTitle: string): string {
+export function buildResumeHtml(resume: TailoredResume): string {
   const experiences = resume.experience.map(exp => `
     <div class="section-item">
       <div class="item-header">
