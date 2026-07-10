@@ -1,10 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fs from 'fs/promises'
 import os from 'os'
 import path from 'path'
 import type { ApplicationRecord } from '@/types/agent'
 import { saveApplication } from '../store'
-import { applyCollectedApplication } from '../apply'
+import { applyCollectedApplication, updateApplicationResume } from '../apply'
 
 let tmpDir: string
 
@@ -70,5 +70,39 @@ describe('applyCollectedApplication', () => {
   it('refuses to re-apply an already applied record', async () => {
     await saveApplication(makeRecord('app-2', 'applied'), Buffer.from('%PDF-fake'))
     await expect(applyCollectedApplication('app-2')).rejects.toThrow('Already applied')
+  })
+})
+
+describe('updateApplicationResume', () => {
+  it('replaces the resume, rebuilds the pdf, and persists', async () => {
+    await saveApplication(makeRecord('edit-1', 'collected'), Buffer.from('%PDF-old'), '<html>old</html>')
+    const render = vi.fn().mockResolvedValue(Buffer.from('%PDF-new'))
+
+    const base = makeRecord('edit-1', 'collected').resume
+    const updated = await updateApplicationResume(
+      'edit-1',
+      { ...base, summary: 'Edited summary', skills: ['React', 'Vue'] },
+      render
+    )
+
+    expect(render).toHaveBeenCalledTimes(1)
+    expect(updated.resume.summary).toBe('Edited summary')
+
+    const dir = path.join(tmpDir, 'data', 'applications', 'edit-1')
+    const saved = JSON.parse(await fs.readFile(path.join(dir, 'application.json'), 'utf-8'))
+    expect(saved.resume.summary).toBe('Edited summary')
+    expect(saved.resume.skills).toEqual(['React', 'Vue'])
+    expect(await fs.readFile(path.join(dir, 'resume.pdf'), 'utf-8')).toBe('%PDF-new')
+  })
+
+  it('rejects editing an already applied record', async () => {
+    await saveApplication(makeRecord('edit-2', 'applied'), Buffer.from('%PDF-x'))
+    const base = makeRecord('edit-2', 'applied').resume
+    await expect(updateApplicationResume('edit-2', base, vi.fn())).rejects.toThrow('Already applied')
+  })
+
+  it('throws for a missing application', async () => {
+    const base = makeRecord('nope', 'collected').resume
+    await expect(updateApplicationResume('missing-id', base, vi.fn())).rejects.toThrow('not found')
   })
 })

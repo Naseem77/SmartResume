@@ -1,6 +1,9 @@
 import fs from 'fs/promises'
 import path from 'path'
 import type { ApplicationRecord } from '@/types/agent'
+import type { TailoredResume } from '@/types/resume'
+import { buildResumeHtml } from '@/lib/resumeTemplate'
+import { renderPdf } from '@/lib/pdf'
 import { pickApplier } from './appliers'
 import { applicationDir, getApplication, saveApplication, appendLog } from './store'
 
@@ -27,5 +30,26 @@ export async function applyCollectedApplication(id: string): Promise<Application
   await appendLog(
     `Manual apply from dashboard: ${record.job.title} @ ${record.job.company} — status ${result.status} (via ${result.via})`
   )
+  return record
+}
+
+/**
+ * Replaces the resume of a not-yet-applied application and regenerates
+ * its PDF so the edited version is what gets submitted.
+ */
+export async function updateApplicationResume(
+  id: string,
+  resume: TailoredResume,
+  render: typeof renderPdf = renderPdf
+): Promise<ApplicationRecord> {
+  const record = await getApplication(id)
+  if (!record) throw new Error('Application not found')
+  if (record.status === 'applied') throw new Error('Already applied')
+
+  const html = buildResumeHtml(resume)
+  const pdf = await render(html)
+  record.resume = resume
+  await saveApplication(record, pdf, html)
+  await appendLog(`Resume edited from dashboard: ${record.job.title} @ ${record.job.company}`)
   return record
 }
