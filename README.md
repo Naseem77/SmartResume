@@ -1,10 +1,23 @@
+<div align="center">
+
 # SmartResume
 
 **AI-powered resume tailoring and autonomous job application platform.**
 
-SmartResume turns your professional profile into a job-hunting machine. It tailors an ATS-optimized resume for any job posting on demand, and its autonomous agent can search job boards for hours, match listings against your profile, generate a verified resume for each one, and apply: all running locally on your machine.
+*Tailor an ATS-verified resume for any job in seconds, or let the agent search, match, and apply for hours: all running privately on your machine.*
+
+[![Next.js](https://img.shields.io/badge/Next.js-000000?logo=next.js&logoColor=white)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Tests](https://img.shields.io/badge/tests-35%20passing-brightgreen)](#quality--testing)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+
+</div>
 
 ---
+
+## Overview
+
+SmartResume eliminates the most time-consuming part of a job search: producing a high-quality, role-specific resume for every application. It maintains your professional profile locally, tailors an ATS-optimized resume per job posting with AI, and provides an autonomous agent that discovers, evaluates, and applies to matching roles on a schedule you control.
 
 ## Key Capabilities
 
@@ -32,9 +45,9 @@ Profile + Preferences          The Agent Loop                       Your Review
                        └─────────────────────────────────┘   └──────────────────┘
 ```
 
-## Quick Start
+## Getting Started
 
-**Prerequisites:** Node.js 20+, an OpenAI or Anthropic API key.
+**Prerequisites:** Node.js 20+ and an OpenAI or Anthropic API key.
 
 ```bash
 # 1. Install
@@ -42,7 +55,7 @@ git clone https://github.com/Naseem77/SmartResume.git
 cd SmartResume
 npm install
 
-# 2. Configure (add your LLM key)
+# 2. Configure your LLM key
 cp .env.local.example .env.local
 # edit .env.local: set OPENAI_API_KEY or ANTHROPIC_API_KEY
 
@@ -50,37 +63,33 @@ cp .env.local.example .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000), then:
+Then open [http://localhost:3000](http://localhost:3000):
 
-1. **`/profile`**: fill in your experience, education, and skills (or import from LinkedIn), and set your **Job Search Preferences**: titles, locations, keywords, job boards, score thresholds
+1. **`/profile`**: enter your experience, education, and skills (or import from LinkedIn), and set your **Job Search Preferences**: titles, locations, keywords, job boards, score thresholds
 2. **`/dashboard`**: press **▶ Start Agent** and choose how many hours to run
 
-Or run the agent from the terminal:
+Prefer the terminal? The agent runs standalone:
 
 ```bash
-npm run agent -- 3        # hunt for 3 hours
+npm run agent -- 3        # search and apply for 3 hours
 ```
 
-That's it. The dashboard fills up with matched jobs, each with a tailored, ATS-verified resume ready to go.
+The dashboard fills with matched jobs, each carrying a tailored, ATS-verified resume ready to go.
 
 ## Operating Modes
 
 Set in `.env.local`:
 
-```env
-COLLECT_ONLY=true    # review mode (default, recommended)
-```
-
 | Mode | Behavior |
 |---|---|
-| `COLLECT_ONLY=true` | Agent collects matched jobs with finished resumes. You review each on the dashboard and click **Apply Now** |
-| `COLLECT_ONLY=false` | Agent applies automatically as it finds matches |
+| `COLLECT_ONLY=true` *(recommended)* | The agent collects matched jobs with finished resumes. You review each on the dashboard and click **Apply Now** |
+| `COLLECT_ONLY=false` | The agent applies automatically as it finds matches |
 
-### Applying
+### Application Submission
 
-The default applier is **record mode**: the finished resume and application record are saved, marked "Ready to submit", with the job link one click away.
+The default submission handler is **record mode**: the finished resume and application record are saved and marked "Ready to submit", with the job posting one click away.
 
-Optional LinkedIn Easy Apply auto-submit:
+Optional LinkedIn Easy Apply automation:
 
 ```env
 AUTO_APPLY=true
@@ -88,7 +97,7 @@ LINKEDIN_EMAIL=you@example.com
 LINKEDIN_PASSWORD=...
 ```
 
-It completes simple Easy Apply flows (resume upload and submit). Applications with custom questions are marked "Needs manual step" with the resume ready.
+Simple Easy Apply flows are completed end to end (resume upload and submit). Applications with custom questions are flagged "Needs manual step" with the resume prepared.
 
 > **Compliance note:** automating logins and submissions may violate a job board's terms of service and can trigger security checks. Review mode with one-click apply is the recommended configuration. Use auto-submit at your own risk.
 
@@ -96,7 +105,7 @@ It completes simple Easy Apply flows (resume upload and submit). Applications wi
 
 All configuration lives in `.env.local` (see `.env.local.example`).
 
-### AI provider (required)
+### AI Provider (required)
 
 | Variable | Description |
 |---|---|
@@ -114,9 +123,13 @@ All configuration lives in `.env.local` (see `.env.local.example`).
 | `AGENT_POLL_MINUTES` | `20` | Minutes between search cycles |
 | `AGENT_MAX_APPLICATIONS` | `10` | Stop after this many applications per run |
 
-CLI flags override env vars: `npm run agent -- --hours 3 --poll-minutes 15 --max-apps 5`
+CLI flags override environment variables:
 
-### Job boards
+```bash
+npm run agent -- --hours 3 --poll-minutes 15 --max-apps 5
+```
+
+### Job Boards
 
 | Source | Access | Required variables |
 |---|---|---|
@@ -125,9 +138,9 @@ CLI flags override env vars: `npm run agent -- --hours 3 --poll-minutes 15 --max
 | Indeed | Publisher API | `INDEED_PUBLISHER_ID` |
 | Glassdoor | Partner API | `GLASSDOOR_PARTNER_ID`, `GLASSDOOR_API_KEY` |
 
-Boards are toggled per-user in the preferences UI.
+Boards are toggled per user in the preferences UI.
 
-### Auto-submit (optional)
+### Auto-Submit (optional)
 
 | Variable | Description |
 |---|---|
@@ -135,17 +148,13 @@ Boards are toggled per-user in the preferences UI.
 | `LINKEDIN_EMAIL` / `LINKEDIN_PASSWORD` | LinkedIn credentials |
 | `AUTO_APPLY_HEADLESS` | `false` to watch the browser while it applies |
 
-## Data & Audit Trail
+## Data, Privacy & Audit Trail
 
 Every application is fully auditable on disk:
 
 ```
 data/
-├── applications/
-│   └── 2026-07-10T14-05-11_acme_frontend-engineer_x7k2/
-│       ├── application.json   # job, status, fit score, ATS breakdown, resume JSON
-│       ├── resume.pdf         # the exact resume submitted for this job
-│       └── resume.html
+├── applications/<id>/         # application.json, resume.pdf, resume.html per job
 ├── agent-status.json          # live agent telemetry (powers the dashboard)
 ├── seen-jobs.json             # dedupe ledger of evaluated listings
 └── agent.log                  # timestamped activity log
@@ -155,52 +164,19 @@ personaldata/
 └── preferences.json           # titles, keywords, boards, thresholds
 ```
 
-`data/` and `personaldata/` are gitignored. Nothing leaves your machine except calls to your chosen LLM provider and the job boards themselves.
+- `data/` and `personaldata/` are excluded from version control
+- No accounts, no telemetry, no third-party storage
+- The only outbound traffic is to your chosen LLM provider and the job boards themselves
 
 ## Quality & Testing
 
 ```bash
-npm test          # 35 vitest tests: store, sources, matcher, pipeline, runner, apply
+npm test          # 35 vitest tests
 npm run lint      # ESLint
 npm run build     # production build
 ```
 
-The test suite covers the persistence layer, job board parsers, match filtering, the ATS fix loop, the agent's time-boxed run loop, failure isolation (one bad job never kills a run), and the one-click apply flow.
-
-## Architecture
-
-```
-scripts/
-└── agent.ts                  # CLI entry: npm run agent -- <hours>
-src/
-├── app/
-│   ├── profile/              # Profile + job search preferences
-│   ├── apply/                # Manual single-job generate flow
-│   ├── dashboard/            # Applications dashboard + agent controls
-│   └── api/
-│       ├── agent/            # Start / stop / status
-│       ├── applications/     # List, resume PDFs, one-click apply
-│       ├── preferences/      # Search preferences
-│       ├── profile/          # Base resume data
-│       ├── scrape/           # Job description fetcher
-│       ├── generate/         # AI resume + ATS score
-│       └── pdf/              # PDF export
-├── components/               # ProfileForm, PreferencesForm, previews
-└── lib/
-    ├── ai.ts                 # Claude + OpenAI provider abstraction
-    ├── pdf.ts                # Puppeteer PDF rendering
-    ├── scraper.ts            # Job page scraper
-    ├── resumeTemplate.ts     # ATS-safe HTML template
-    └── agent/
-        ├── runner.ts         # Time-boxed agent loop with live status
-        ├── pipeline.ts       # tailor → ATS check → PDF → apply → persist
-        ├── matcher.ts        # keyword prefilter + LLM fit scoring
-        ├── store.ts          # data/ persistence layer
-        ├── sources/          # linkedin · alljobs · indeed · glassdoor
-        └── appliers/         # record (default) · linkedin easy apply
-```
-
-**Stack:** Next.js (App Router, TypeScript) · Tailwind CSS · Anthropic / OpenAI SDKs · Cheerio · Puppeteer · Vitest · tsx
+The suite covers the persistence layer, job board parsers, match filtering, the ATS fix loop, the agent's time-boxed run loop, failure isolation (one bad job never kills a run), and the one-click apply flow.
 
 ## License
 
