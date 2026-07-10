@@ -72,23 +72,23 @@ export default function ApplyPage() {
   const { num: stepNum, label: stepLabel } = stepMap[step]
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12 px-4">
+    <main className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 py-12 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Generate Resume</h1>
-          <p className="text-gray-500 mt-1">Paste a job URL and we&apos;ll tailor your resume to match.</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Generate Resume</h1>
+          <p className="text-gray-500 dark:text-zinc-400 mt-1">Paste a job URL and we&apos;ll tailor your resume to match.</p>
         </div>
 
-        <div className="mb-6 flex gap-2 items-center text-sm text-gray-400">
+        <div className="mb-6 flex gap-2 items-center text-sm text-gray-400 dark:text-zinc-500">
           <span className="w-5 h-5 rounded-full bg-teal-600 text-white text-xs flex items-center justify-center font-bold">{stepNum}</span>
           Step {stepNum} of 3 — {stepLabel}
         </div>
 
         {profileEmpty && (
-          <div className="mb-6 bg-teal-50 border border-teal-200 rounded-xl px-5 py-4 flex items-center justify-between">
+          <div className="mb-6 bg-teal-50 dark:bg-teal-500/10 border border-teal-200 rounded-xl px-5 py-4 flex items-center justify-between">
             <div>
               <p className="text-teal-800 font-medium text-sm">Your profile is empty</p>
-              <p className="text-teal-600 text-sm mt-0.5">Fill in your experience, education, and skills so we can tailor your resume.</p>
+              <p className="text-teal-600 dark:text-teal-400 text-sm mt-0.5">Fill in your experience, education, and skills so we can tailor your resume.</p>
             </div>
             <Link
               href="/profile"
@@ -100,23 +100,23 @@ export default function ApplyPage() {
         )}
 
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
+          <div className="mb-6 bg-red-50 dark:bg-rose-500/10 border border-red-200 dark:border-rose-500/30 text-red-700 dark:text-rose-300 rounded-lg px-4 py-3 text-sm">
             {error}
           </div>
         )}
 
         {step === 'input' && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h2 className="font-semibold text-gray-800 mb-4">Job Posting</h2>
+          <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm p-6">
+            <h2 className="font-semibold text-gray-800 dark:text-zinc-200 mb-4">Job Posting</h2>
             <JobInput onJobReady={handleGenerate} />
           </div>
         )}
 
         {step === 'generating' && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-16 text-center">
+          <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm p-16 text-center">
             <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-700 font-medium">Tailoring your resume...</p>
-            <p className="text-gray-400 text-sm mt-1">This usually takes 15–30 seconds</p>
+            <p className="text-gray-700 dark:text-zinc-300 font-medium">Tailoring your resume...</p>
+            <p className="text-gray-400 dark:text-zinc-500 text-sm mt-1">This usually takes 15–30 seconds</p>
           </div>
         )}
 
@@ -124,13 +124,13 @@ export default function ApplyPage() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">{result.jobTitle}</h2>
-                <p className="text-gray-400 text-sm">Resume tailored for this role</p>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-zinc-100">{result.jobTitle}</h2>
+                <p className="text-gray-400 dark:text-zinc-500 text-sm">Resume tailored for this role</p>
               </div>
               <div className="flex gap-3">
                 <button
                   onClick={() => { setStep('input'); setResult(null) }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
                 >New Resume</button>
                 <button
                   onClick={handleDownload}
