@@ -4,11 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { AgentStatus, ApplicationRecord } from '@/types/agent'
 
 const STATUS_STYLES: Record<string, { label: string; classes: string }> = {
-  collected: { label: 'Collected', classes: 'bg-violet-500/15 text-violet-300 border-violet-500/40' },
-  applied: { label: 'Applied', classes: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40' },
+  collected: { label: 'Collected', classes: 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/40' },
+  applied: { label: 'Applied', classes: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40' },
   prepared: { label: 'Ready to submit', classes: 'bg-sky-500/15 text-sky-300 border-sky-500/40' },
-  needs_manual: { label: 'Needs manual step', classes: 'bg-amber-500/15 text-amber-300 border-amber-500/40' },
-  failed: { label: 'Failed', classes: 'bg-rose-500/15 text-rose-300 border-rose-500/40' },
+  needs_manual: { label: 'Needs manual step', classes: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40' },
+  failed: { label: 'Failed', classes: 'bg-rose-500/15 text-rose-600 dark:text-rose-300 border-rose-500/40' },
 }
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -47,7 +47,7 @@ function Countdown({ endsAt }: { endsAt?: string }) {
     return () => clearInterval(t)
   }, [endsAt])
   if (!endsAt || ms === null) return null
-  if (ms <= 0) return <span className="text-zinc-500">finishing…</span>
+  if (ms <= 0) return <span className="text-gray-500 dark:text-zinc-500">finishing…</span>
   const h = Math.floor(ms / 3600000)
   const m = Math.floor((ms % 3600000) / 60000)
   const s = Math.floor((ms % 60000) / 1000)
@@ -100,8 +100,8 @@ function AgentPanel({
   ]
 
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900/70 backdrop-blur overflow-hidden">
-      <div className="px-6 py-5 flex flex-wrap items-center justify-between gap-4 border-b border-zinc-800">
+    <section className="rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/70 backdrop-blur shadow-sm dark:shadow-none overflow-hidden">
+      <div className="px-6 py-5 flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 dark:border-zinc-800">
         <div className="flex items-center gap-3">
           <span
             className={`relative flex h-3 w-3 ${running ? '' : 'opacity-40'}`}
@@ -111,12 +111,12 @@ function AgentPanel({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
             )}
             <span
-              className={`relative inline-flex rounded-full h-3 w-3 ${running ? 'bg-emerald-400' : 'bg-zinc-600'}`}
+              className={`relative inline-flex rounded-full h-3 w-3 ${running ? 'bg-emerald-400' : 'bg-gray-400 dark:bg-zinc-600'}`}
             />
           </span>
           <div>
-            <h2 className="font-bold text-zinc-100 leading-tight">Auto-Apply Agent</h2>
-            <p className="text-xs text-zinc-400 font-mono">
+            <h2 className="font-bold text-gray-900 dark:text-zinc-100 leading-tight">Auto-Apply Agent</h2>
+            <p className="text-xs text-gray-500 dark:text-zinc-400 font-mono">
               {running ? (
                 <>
                   running · <Countdown endsAt={status?.endsAt} /> left
@@ -133,13 +133,13 @@ function AgentPanel({
             <button
               onClick={() => setConfirmStop(true)}
               disabled={busy}
-              className="px-4 py-2 rounded-lg bg-rose-500/15 border border-rose-500/40 text-rose-300 text-sm font-semibold hover:bg-rose-500/25 transition-colors disabled:opacity-50"
+              className="px-4 py-2 rounded-lg bg-rose-500/15 border border-rose-500/40 text-rose-600 dark:text-rose-300 text-sm font-semibold hover:bg-rose-500/25 transition-colors disabled:opacity-50"
             >
               Stop Agent
             </button>
           ) : (
             <>
-              <label className="flex items-center gap-2 text-sm text-zinc-300">
+              <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-zinc-300">
                 Run for
                 <input
                   type="number"
@@ -148,14 +148,14 @@ function AgentPanel({
                   step={0.5}
                   value={hours}
                   onChange={(e) => setHours(Number(e.target.value))}
-                  className="w-20 bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-sm text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-20 bg-gray-200 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg px-2.5 py-2 text-sm text-gray-900 dark:text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
                 hours
               </label>
               <button
                 onClick={() => act({ action: 'start', hours })}
                 disabled={busy}
-                className="px-5 py-2 rounded-lg bg-emerald-500 text-zinc-950 text-sm font-bold hover:bg-emerald-400 transition-colors disabled:opacity-50 shadow-lg shadow-emerald-500/20"
+                className="px-5 py-2 rounded-lg bg-emerald-500 text-white dark:text-zinc-950 text-sm font-bold hover:bg-emerald-400 transition-colors disabled:opacity-50 shadow-lg shadow-emerald-500/20"
               >
                 ▶ Start Agent
               </button>
@@ -165,28 +165,28 @@ function AgentPanel({
       </div>
 
       {error && (
-        <div className="px-6 py-2 bg-rose-500/10 border-b border-rose-500/30 text-sm text-rose-300">
+        <div className="px-6 py-2 bg-rose-500/10 border-b border-rose-500/30 text-sm text-rose-600 dark:text-rose-300">
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-zinc-800 border-b border-zinc-800">
+      <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-gray-200 dark:divide-zinc-800 border-b border-gray-200 dark:border-zinc-800">
         {metrics.map((metric) => (
           <div key={metric.label} className="px-6 py-4">
-            <p className="text-2xl font-bold text-zinc-100 font-mono tabular-nums">{metric.value}</p>
-            <p className="text-xs text-zinc-500 uppercase tracking-wider mt-0.5">{metric.label}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100 font-mono tabular-nums">{metric.value}</p>
+            <p className="text-xs text-gray-500 dark:text-zinc-500 uppercase tracking-wider mt-0.5">{metric.label}</p>
           </div>
         ))}
       </div>
 
       <div className="px-6 py-4">
-        <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">
+        <p className="text-xs text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-2">
           {status?.lastActivity ? `Latest: ${status.lastActivity}` : 'Activity log'}
         </p>
-        <div className="bg-zinc-950 rounded-lg border border-zinc-800 p-3 h-40 overflow-y-auto font-mono text-xs text-zinc-400 space-y-0.5">
+        <div className="bg-gray-100 dark:bg-zinc-950 rounded-lg border border-gray-200 dark:border-zinc-800 p-3 h-40 overflow-y-auto font-mono text-xs text-gray-500 dark:text-zinc-400 space-y-0.5">
           {log.length === 0 ? (
-            <p className="text-zinc-600">
-              No activity yet. Start the agent here, or run <span className="text-emerald-400">npm run agent -- 3</span> in your terminal.
+            <p className="text-gray-400 dark:text-zinc-600">
+              No activity yet. Start the agent here, or run <span className="text-emerald-600 dark:text-emerald-400">npm run agent -- 3</span> in your terminal.
             </p>
           ) : (
             log.map((line, i) => <p key={i}>{line}</p>)
@@ -200,16 +200,16 @@ function AgentPanel({
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setConfirmStop(false)}
           />
-          <div className="relative bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6">
+          <div className="relative bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6">
             <p className="text-3xl mb-3">🛑</p>
-            <h3 className="text-lg font-bold text-zinc-100 mb-1">Stop the agent?</h3>
-            <p className="text-sm text-zinc-400 mb-5">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-zinc-100 mb-1">Stop the agent?</h3>
+            <p className="text-sm text-gray-500 dark:text-zinc-400 mb-5">
               The current run will end immediately. Everything already collected or applied stays saved, and you can start a new run anytime.
             </p>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setConfirmStop(false)}
-                className="px-4 py-2 rounded-lg border border-zinc-700 text-zinc-300 text-sm font-semibold hover:border-zinc-500 transition-colors"
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-sm font-semibold hover:border-gray-400 dark:hover:border-zinc-500 transition-colors"
               >
                 Keep Running
               </button>
@@ -232,11 +232,11 @@ function AgentPanel({
 }
 
 function ScoreRing({ score, label }: { score: number; label: string }) {
-  const color = score >= 80 ? 'text-emerald-400' : score >= 60 ? 'text-amber-400' : 'text-rose-400'
+  const color = score >= 80 ? 'text-emerald-600 dark:text-emerald-400' : score >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-500 dark:text-rose-400'
   return (
     <div className="text-center">
       <p className={`text-xl font-bold font-mono tabular-nums ${color}`}>{score}</p>
-      <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{label}</p>
+      <p className="text-[10px] text-gray-500 dark:text-zinc-500 uppercase tracking-wider">{label}</p>
     </div>
   )
 }
@@ -332,18 +332,18 @@ function DetailDrawer({
   return (
     <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-xl bg-zinc-900 border-l border-zinc-800 h-full overflow-y-auto shadow-2xl">
-        <div className="sticky top-0 bg-zinc-900/95 backdrop-blur border-b border-zinc-800 px-6 py-4 flex items-start justify-between gap-4">
+      <div className="relative w-full max-w-xl bg-white dark:bg-zinc-900 border-l border-gray-200 dark:border-zinc-800 h-full overflow-y-auto shadow-2xl">
+        <div className="sticky top-0 bg-white/95 dark:bg-zinc-900/95 backdrop-blur border-b border-gray-200 dark:border-zinc-800 px-6 py-4 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-bold text-zinc-100">{record.job.title}</h3>
-            <p className="text-sm text-zinc-400">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-zinc-100">{record.job.title}</h3>
+            <p className="text-sm text-gray-500 dark:text-zinc-400">
               {record.job.company} · {record.job.location || 'location n/a'}
             </p>
           </div>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="text-zinc-500 hover:text-zinc-200 text-2xl leading-none"
+            className="text-gray-500 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-zinc-200 text-2xl leading-none"
           >
             ×
           </button>
@@ -352,28 +352,28 @@ function DetailDrawer({
         <div className="px-6 py-5 space-y-6">
           <div className="flex flex-wrap items-center gap-3">
             <StatusBadge status={record.status} />
-            <span className="text-xs text-zinc-500 font-mono">{formatTime(record.appliedAt)}</span>
-            <span className="text-xs text-zinc-500">
+            <span className="text-xs text-gray-500 dark:text-zinc-500 font-mono">{formatTime(record.appliedAt)}</span>
+            <span className="text-xs text-gray-500 dark:text-zinc-500">
               via {SOURCE_LABELS[record.job.source] ?? record.job.source} · {record.appliedVia}
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+          <div className="grid grid-cols-3 gap-3 bg-gray-100 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl p-4">
             <ScoreRing score={record.fitScore} label="Fit score" />
             <ScoreRing score={record.atsScore.score} label="ATS score" />
             <div className="text-center">
-              <p className="text-xl font-bold font-mono text-zinc-300">{record.atsAttempts}</p>
-              <p className="text-[10px] text-zinc-500 uppercase tracking-wider">ATS passes</p>
+              <p className="text-xl font-bold font-mono text-gray-700 dark:text-zinc-300">{record.atsAttempts}</p>
+              <p className="text-[10px] text-gray-500 dark:text-zinc-500 uppercase tracking-wider">ATS passes</p>
             </div>
           </div>
 
           {record.fitReasons.length > 0 && (
             <div>
-              <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Why it matched</p>
+              <p className="text-xs text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-2">Why it matched</p>
               <ul className="space-y-1.5">
                 {record.fitReasons.map((reason, i) => (
-                  <li key={i} className="text-sm text-zinc-300 flex gap-2">
-                    <span className="text-emerald-400">→</span>
+                  <li key={i} className="text-sm text-gray-700 dark:text-zinc-300 flex gap-2">
+                    <span className="text-emerald-600 dark:text-emerald-400">→</span>
                     {reason}
                   </li>
                 ))}
@@ -382,33 +382,33 @@ function DetailDrawer({
           )}
 
           <div>
-            <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">ATS breakdown</p>
+            <p className="text-xs text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-2">ATS breakdown</p>
             <div className="space-y-2">
               {Object.entries(record.atsScore.breakdown).map(([key, value]) => (
                 <div key={key} className="flex items-center gap-3">
-                  <span className="text-xs text-zinc-400 w-44 capitalize">
+                  <span className="text-xs text-gray-500 dark:text-zinc-400 w-44 capitalize">
                     {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
                   </span>
-                  <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${value >= 80 ? 'bg-emerald-400' : value >= 60 ? 'bg-amber-400' : 'bg-rose-400'}`}
                       style={{ width: `${value}%` }}
                     />
                   </div>
-                  <span className="text-xs font-mono text-zinc-400 w-8 text-right">{value}</span>
+                  <span className="text-xs font-mono text-gray-500 dark:text-zinc-400 w-8 text-right">{value}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {applyError && (
-            <div className="bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-3 text-sm text-rose-300">
+            <div className="bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-3 text-sm text-rose-600 dark:text-rose-300">
               {applyError}
             </div>
           )}
 
           {record.notes && (
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-3 text-sm text-amber-200">
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-3 text-sm text-amber-700 dark:text-amber-200">
               {record.notes}
             </div>
           )}
@@ -416,15 +416,15 @@ function DetailDrawer({
           {record.coverLetter && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs text-zinc-500 uppercase tracking-wider">Cover letter</p>
+                <p className="text-xs text-gray-500 dark:text-zinc-500 uppercase tracking-wider">Cover letter</p>
                 <button
                   onClick={copyCoverLetter}
-                  className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold"
+                  className="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 font-semibold"
                 >
                   {coverCopied ? 'Copied ✓' : 'Copy'}
                 </button>
               </div>
-              <p className="text-sm text-zinc-300 whitespace-pre-wrap bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 max-h-56 overflow-y-auto">
+              <p className="text-sm text-gray-700 dark:text-zinc-300 whitespace-pre-wrap bg-gray-100 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-lg px-4 py-3 max-h-56 overflow-y-auto">
                 {record.coverLetter}
               </p>
             </div>
@@ -433,49 +433,49 @@ function DetailDrawer({
           {record.status !== 'applied' && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs text-zinc-500 uppercase tracking-wider">Resume</p>
+                <p className="text-xs text-gray-500 dark:text-zinc-500 uppercase tracking-wider">Resume</p>
                 {!editing && (
                   <button
                     onClick={startEditing}
-                    className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold"
+                    className="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 font-semibold"
                   >
                     ✏️ Edit before applying
                   </button>
                 )}
               </div>
               {editing && (
-                <div className="space-y-3 bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                <div className="space-y-3 bg-gray-100 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-lg p-4">
                   <div>
-                    <label className="text-xs text-zinc-400 block mb-1">Summary</label>
+                    <label className="text-xs text-gray-500 dark:text-zinc-400 block mb-1">Summary</label>
                     <textarea
                       value={editSummary}
                       onChange={(e) => setEditSummary(e.target.value)}
                       rows={4}
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-gray-800 dark:text-zinc-200 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-zinc-400 block mb-1">Skills (comma-separated)</label>
+                    <label className="text-xs text-gray-500 dark:text-zinc-400 block mb-1">Skills (comma-separated)</label>
                     <textarea
                       value={editSkills}
                       onChange={(e) => setEditSkills(e.target.value)}
                       rows={3}
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-gray-800 dark:text-zinc-200 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
-                  {saveError && <p className="text-xs text-rose-300">{saveError}</p>}
+                  {saveError && <p className="text-xs text-rose-600 dark:text-rose-300">{saveError}</p>}
                   <div className="flex gap-2">
                     <button
                       onClick={saveResume}
                       disabled={saving}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-500 text-zinc-950 text-xs font-bold hover:bg-emerald-400 transition-colors disabled:opacity-50"
+                      className="px-3 py-1.5 rounded-lg bg-emerald-500 text-white dark:text-zinc-950 text-xs font-bold hover:bg-emerald-400 transition-colors disabled:opacity-50"
                     >
                       {saving ? 'Saving & rebuilding PDF…' : 'Save & rebuild PDF'}
                     </button>
                     <button
                       onClick={() => setEditing(false)}
                       disabled={saving}
-                      className="px-3 py-1.5 rounded-lg border border-zinc-700 text-zinc-400 text-xs font-semibold hover:border-zinc-500 transition-colors"
+                      className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 text-xs font-semibold hover:border-gray-400 dark:hover:border-zinc-500 transition-colors"
                     >
                       Cancel
                     </button>
@@ -498,7 +498,7 @@ function DetailDrawer({
             <a
               href={`/api/applications/${record.id}/resume`}
               target="_blank"
-              className="px-4 py-2 rounded-lg bg-emerald-500 text-zinc-950 text-sm font-bold hover:bg-emerald-400 transition-colors"
+              className="px-4 py-2 rounded-lg bg-emerald-500 text-white dark:text-zinc-950 text-sm font-bold hover:bg-emerald-400 transition-colors"
             >
               View Resume PDF
             </a>
@@ -507,7 +507,7 @@ function DetailDrawer({
                 href={record.job.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 rounded-lg border border-zinc-700 text-zinc-300 text-sm font-semibold hover:border-zinc-500 transition-colors"
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-sm font-semibold hover:border-gray-400 dark:hover:border-zinc-500 transition-colors"
               >
                 Open Job Posting ↗
               </a>
@@ -515,8 +515,8 @@ function DetailDrawer({
           </div>
 
           <div>
-            <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Saved locally</p>
-            <p className="text-xs font-mono text-zinc-500 break-all bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2">
+            <p className="text-xs text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-2">Saved locally</p>
+            <p className="text-xs font-mono text-gray-500 dark:text-zinc-500 break-all bg-gray-100 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-lg px-3 py-2">
               data/applications/{record.id}/
             </p>
           </div>
@@ -535,6 +535,29 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<'date' | 'fit' | 'ats'>('date')
   const [loaded, setLoaded] = useState(false)
+  const [confirmClear, setConfirmClear] = useState(false)
+  const [clearing, setClearing] = useState(false)
+  const [clearError, setClearError] = useState('')
+
+  const clearAllData = async () => {
+    setClearing(true)
+    setClearError('')
+    try {
+      const res = await fetch('/api/applications', { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setClearError(data.error || 'Failed to clear data')
+      } else {
+        setConfirmClear(false)
+        setSelected(null)
+        setApplications([])
+      }
+    } catch {
+      setClearError('Failed to clear data')
+    } finally {
+      setClearing(false)
+    }
+  }
   const prevCountRef = useRef<number | null>(null)
 
   const refresh = useCallback(async () => {
@@ -604,18 +627,26 @@ export default function DashboardPage() {
   }, [applications])
 
   return (
-    <main className="min-h-[calc(100vh-57px)] bg-zinc-950 text-zinc-100 px-4 sm:px-8 py-10">
+    <main className="min-h-[calc(100vh-57px)] bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 px-4 sm:px-8 py-10">
       <div className="max-w-5xl mx-auto space-y-8">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-mono text-emerald-400 uppercase tracking-[0.2em] mb-1">
+            <p className="text-xs font-mono text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em] mb-1">
               Mission Control
             </p>
             <h1 className="text-3xl font-extrabold tracking-tight">Applications Dashboard</h1>
-            <p className="text-zinc-400 text-sm mt-1">
+            <p className="text-gray-500 dark:text-zinc-400 text-sm mt-1">
               Everything the agent found, tailored, and applied to. Saved locally in data/.
             </p>
           </div>
+          {applications.length > 0 && (
+            <button
+              onClick={() => setConfirmClear(true)}
+              className="px-3.5 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-zinc-500 text-xs font-semibold hover:border-rose-500/50 hover:text-rose-400 transition-colors"
+            >
+              🗑 Clear All Data
+            </button>
+          )}
         </header>
 
         <AgentPanel status={status} log={log} onChanged={refresh} />
@@ -628,8 +659,8 @@ export default function DashboardPage() {
                 onClick={() => setFilter(key)}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
                   filter === key
-                    ? 'bg-zinc-100 text-zinc-950 border-zinc-100'
-                    : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                    ? 'bg-gray-900 dark:bg-zinc-100 text-white dark:text-zinc-950 border-gray-900 dark:border-zinc-100'
+                    : 'border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 hover:border-gray-400 dark:hover:border-zinc-500'
                 }`}
               >
                 {key === 'all' ? 'All' : (STATUS_STYLES[key]?.label ?? key)}
@@ -642,12 +673,12 @@ export default function DashboardPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search title, company…"
-                className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-emerald-500 w-48"
+                className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-1.5 text-xs text-gray-800 dark:text-zinc-200 placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 w-48"
               />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'date' | 'fit' | 'ats')}
-                className="bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-emerald-500"
+                className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg px-2 py-1.5 text-xs text-gray-700 dark:text-zinc-300 focus:outline-none focus:border-emerald-500"
               >
                 <option value="date">Newest first</option>
                 <option value="fit">Best fit</option>
@@ -657,14 +688,14 @@ export default function DashboardPage() {
           </div>
 
           {!loaded ? (
-            <div className="text-zinc-500 text-sm py-16 text-center">Loading…</div>
+            <div className="text-gray-500 dark:text-zinc-500 text-sm py-16 text-center">Loading…</div>
           ) : filtered.length === 0 ? (
-            <div className="border border-dashed border-zinc-800 rounded-2xl py-16 text-center">
+            <div className="border border-dashed border-gray-200 dark:border-zinc-800 rounded-2xl py-16 text-center">
               <p className="text-4xl mb-3">🛰️</p>
-              <p className="text-zinc-300 font-semibold">No applications yet</p>
-              <p className="text-zinc-500 text-sm mt-1 max-w-md mx-auto">
+              <p className="text-gray-700 dark:text-zinc-300 font-semibold">No applications yet</p>
+              <p className="text-gray-500 dark:text-zinc-500 text-sm mt-1 max-w-md mx-auto">
                 Set your job titles in Preferences, then start the agent above or run{' '}
-                <span className="font-mono text-emerald-400">npm run agent -- 3</span> to hunt for 3 hours.
+                <span className="font-mono text-emerald-600 dark:text-emerald-400">npm run agent -- 3</span> to hunt for 3 hours.
               </p>
             </div>
           ) : (
@@ -673,16 +704,16 @@ export default function DashboardPage() {
                 <li key={record.id}>
                   <button
                     onClick={() => setSelected(record)}
-                    className="w-full text-left rounded-xl border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-900 hover:border-zinc-700 transition-colors px-5 py-4 flex flex-wrap items-center gap-4"
+                    className="w-full text-left rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 hover:bg-gray-50 dark:hover:bg-zinc-900 hover:border-gray-300 dark:hover:border-zinc-700 transition-colors px-5 py-4 flex flex-wrap items-center gap-4"
                   >
                     <div className="flex-1 min-w-[200px]">
-                      <p className="font-semibold text-zinc-100">{record.job.title}</p>
-                      <p className="text-sm text-zinc-400">
+                      <p className="font-semibold text-gray-900 dark:text-zinc-100">{record.job.title}</p>
+                      <p className="text-sm text-gray-500 dark:text-zinc-400">
                         {record.job.company}
                         {record.job.location ? ` · ${record.job.location}` : ''}
                       </p>
                     </div>
-                    <span className="text-xs text-zinc-500 font-mono">
+                    <span className="text-xs text-gray-500 dark:text-zinc-500 font-mono">
                       {SOURCE_LABELS[record.job.source] ?? record.job.source}
                     </span>
                     <div className="flex items-center gap-4">
@@ -690,7 +721,7 @@ export default function DashboardPage() {
                       <ScoreRing score={record.atsScore.score} label="ATS" />
                     </div>
                     <StatusBadge status={record.status} />
-                    <span className="text-xs text-zinc-500 font-mono w-28 text-right">
+                    <span className="text-xs text-gray-500 dark:text-zinc-500 font-mono w-28 text-right">
                       {formatTime(record.appliedAt)}
                     </span>
                   </button>
@@ -710,6 +741,42 @@ export default function DashboardPage() {
             refresh()
           }}
         />
+      )}
+
+      {confirmClear && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setConfirmClear(false)} />
+          <div className="relative bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6">
+            <p className="text-3xl mb-3">⚠️</p>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-zinc-100 mb-1">Delete all data?</h3>
+            <p className="text-sm text-gray-500 dark:text-zinc-400 mb-2">
+              This permanently deletes <span className="font-bold text-gray-800 dark:text-zinc-200">{applications.length}</span>{' '}
+              application{applications.length === 1 ? '' : 's'}, every saved resume PDF, the seen-jobs
+              history, and the agent log.
+            </p>
+            <p className="text-sm font-semibold text-rose-600 dark:text-rose-300 mb-5">This cannot be undone.</p>
+            {clearError && (
+              <p className="text-xs text-rose-600 dark:text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2 mb-4">
+                {clearError}
+              </p>
+            )}
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setConfirmClear(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-sm font-semibold hover:border-gray-400 dark:hover:border-zinc-500 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={clearAllData}
+                disabled={clearing}
+                className="px-4 py-2 rounded-lg bg-rose-600 text-white text-sm font-bold hover:bg-rose-500 transition-colors disabled:opacity-50"
+              >
+                {clearing ? 'Deleting…' : 'Yes, Delete Everything'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   )
