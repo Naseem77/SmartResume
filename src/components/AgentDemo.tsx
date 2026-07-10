@@ -23,7 +23,7 @@ function buildScript(title: string): TermLine[] {
   return [
     { text: `$ npm run agent -- 3 --title "${t}"`, color: 'text-zinc-500' },
     { text: `agent started · 3h run · collect mode`, color: 'text-zinc-400' },
-    { text: `searching linkedin · alljobs: "${t}"`, color: 'text-cyan-300' },
+    { text: `searching linkedin: "${t}"`, color: 'text-cyan-300' },
     { text: `found ${found} jobs · ${fresh} new after dedupe`, color: 'text-zinc-300' },
     { text: `match: ${t} @ ${company} ......... ${fit}/100 ✓`, color: 'text-emerald-300' },
     { text: `match: ${t} @ ${company2} ......... ${Math.max(52, fit - 31)}/100 ✗ skipped`, color: 'text-zinc-500' },

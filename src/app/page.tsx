@@ -5,7 +5,7 @@ import AgentDemo from '@/components/AgentDemo'
 const fraunces = Fraunces({ subsets: ['latin'], weight: ['400', '600', '900'], style: ['normal', 'italic'], variable: '--font-fraunces' })
 const jetbrains = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-jb' })
 
-const BOARDS = ['LinkedIn', 'AllJobs', 'Indeed', 'Glassdoor']
+const BOARDS = ['LinkedIn', 'Indeed', 'Glassdoor']
 
 const STEPS = [
   {
