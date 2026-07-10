@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { spawn } from 'child_process'
 import path from 'path'
 import { loadStatus, saveStatus, readLogTail } from '@/lib/agent/store'
+import { validateEnv } from '@/lib/config'
 
 function isProcessAlive(pid: number): boolean {
   try {
@@ -29,6 +30,13 @@ export async function POST(request: Request) {
     const action: string = body.action
 
     if (action === 'start') {
+      const envIssues = validateEnv()
+      if (envIssues.length > 0) {
+        return NextResponse.json(
+          { error: `Configuration error: ${envIssues.map((i) => `${i.variable} ${i.message}`).join('; ')}` },
+          { status: 400 }
+        )
+      }
       const current = await loadStatus()
       if (current?.running && current.pid && isProcessAlive(current.pid)) {
         return NextResponse.json({ error: 'Agent is already running' }, { status: 409 })
