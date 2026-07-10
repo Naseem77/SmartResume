@@ -5,6 +5,7 @@ import type { AgentConfig, AgentStatus } from '@/types/agent'
 import { searchAllSources } from './sources'
 import { matchJob, prefilterJob } from './matcher'
 import { processJob, type PipelineDeps } from './pipeline'
+import { effectiveExperienceYears } from './experience'
 import { closePdfBrowser } from '@/lib/pdf'
 import {
   appendLog,
@@ -81,6 +82,13 @@ export async function runAgent(
 
   const profile = await loadProfile()
 
+  // Resolve target experience: explicit preference, or computed from the profile
+  const experienceYears = effectiveExperienceYears(prefs, profile)
+  const effectivePrefs = { ...prefs, experienceYears }
+  await log(
+    `Target experience: ${experienceYears} years${prefs.experienceYears == null ? ' (auto from profile)' : ''}`
+  )
+
   const startedAt = now()
   const endsAt = startedAt + config.hours * 60 * 60 * 1000
   const pollMs = Math.max(1, config.pollMinutes) * 60 * 1000
@@ -124,7 +132,7 @@ export async function runAgent(
       status.cycle++
       await update(`Cycle ${status.cycle}: searching job boards`)
 
-      const jobs = await search(prefs, (msg) => void log(msg))
+      const jobs = await search(effectivePrefs, (msg) => void log(msg))
       const fresh = jobs.filter(
         (job) => !seen.has(job.id) && !seen.has(jobFingerprint(job))
       )
@@ -147,7 +155,7 @@ export async function runAgent(
           }
 
           await update(`Checking fit: ${job.title} @ ${job.company}`)
-          const fit = await match(profile, job, prefs)
+          const fit = await match(profile, job, effectivePrefs)
           if (!fit.shouldApply) {
             await log(`Skipped (fit ${fit.fit} < ${prefs.minFitScore}): ${job.title} @ ${job.company}`)
             continue

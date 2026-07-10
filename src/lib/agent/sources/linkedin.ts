@@ -2,6 +2,7 @@ import * as cheerio from 'cheerio'
 import type { JobListing, SearchPreferences } from '@/types/agent'
 import type { JobSource } from './types'
 import { withRetry } from '../retry'
+import { linkedinExperienceLevels } from '../experience'
 
 const GUEST_SEARCH_URL =
   'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search'
@@ -57,10 +58,14 @@ async function searchLinkedIn(
       const params = new URLSearchParams({
         keywords: title,
         start: String(page * PAGE_SIZE),
-        f_TPR: 'r86400', // last 24h
+        // Only jobs posted within the configured window (seconds)
+        f_TPR: `r${Math.max(1, Math.round((prefs.maxJobAgeHours || 24) * 3600))}`,
       })
       if (location) params.set('location', location)
       if (prefs.remoteOnly) params.set('f_WT', '2')
+      if (prefs.experienceYears !== null && prefs.experienceYears !== undefined) {
+        params.set('f_E', linkedinExperienceLevels(prefs.experienceYears).join(','))
+      }
 
       const pageJobs = await withRetry(async () => {
         const response = await fetch(`${GUEST_SEARCH_URL}?${params}`, {

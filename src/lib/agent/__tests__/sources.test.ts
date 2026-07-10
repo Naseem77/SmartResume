@@ -122,3 +122,52 @@ describe('linkedin pagination', () => {
     expect(fetchMock).toHaveBeenCalledTimes(3) // 3 retry attempts
   })
 })
+
+describe('linkedin experience filter', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('adds f_E levels when experienceYears is set', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, text: async () => '<ul></ul>' })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const prefs = { locations: [], remoteOnly: false, experienceYears: 4 } as unknown as Parameters<
+      typeof linkedinSource.search
+    >[1]
+    await linkedinSource.search('Engineer', prefs)
+    expect(String(fetchMock.mock.calls[0][0])).toContain('f_E=3%2C4')
+  })
+
+  it('omits f_E when experienceYears is null', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, text: async () => '<ul></ul>' })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const prefs = { locations: [], remoteOnly: false, experienceYears: null } as unknown as Parameters<
+      typeof linkedinSource.search
+    >[1]
+    await linkedinSource.search('Engineer', prefs)
+    expect(String(fetchMock.mock.calls[0][0])).not.toContain('f_E')
+  })
+})
+
+describe('linkedin freshness filter', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  const search = async (maxJobAgeHours?: number) => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, text: async () => '<ul></ul>' })
+    vi.stubGlobal('fetch', fetchMock)
+    const prefs = { locations: [], remoteOnly: false, experienceYears: null, maxJobAgeHours } as unknown as Parameters<
+      typeof linkedinSource.search
+    >[1]
+    await linkedinSource.search('Engineer', prefs)
+    return String(fetchMock.mock.calls[0][0])
+  }
+
+  it('uses the configured window in seconds', async () => {
+    expect(await search(2)).toContain('f_TPR=r7200')
+    expect(await search(72)).toContain('f_TPR=r259200')
+  })
+
+  it('defaults to 24 hours when unset', async () => {
+    expect(await search(undefined)).toContain('f_TPR=r86400')
+  })
+})

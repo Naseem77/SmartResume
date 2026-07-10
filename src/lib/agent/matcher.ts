@@ -33,6 +33,7 @@ Experience: ${profile.experience
 
 ## Candidate is looking for
 Titles: ${prefs.jobTitles.join(', ') || 'any'}
+Target experience level: ${prefs.experienceYears != null ? `about ${prefs.experienceYears} years` : 'not specified'}
 Must-have keywords: ${prefs.keywords.join(', ') || 'none'}
 Locations: ${prefs.locations.join(', ') || 'any'}${prefs.remoteOnly ? ' (remote only)' : ''}
 

@@ -35,6 +35,8 @@ export const DEFAULT_PREFERENCES: SearchPreferences = {
   keywords: [],
   excludeKeywords: [],
   remoteOnly: false,
+  experienceYears: null,
+  maxJobAgeHours: 24,
   minFitScore: 60,
   minAtsScore: 75,
   maxApplicationsPerRun: 10,

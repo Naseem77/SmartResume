@@ -19,6 +19,10 @@ export interface SearchPreferences {
   keywords: string[]
   excludeKeywords: string[]
   remoteOnly: boolean
+  /** Target years of experience; null = auto-calculated from the profile's work history. */
+  experienceYears: number | null
+  /** Only consider jobs published within this many hours. */
+  maxJobAgeHours: number
   minFitScore: number
   minAtsScore: number
   maxApplicationsPerRun: number
