@@ -13,6 +13,12 @@
 # testing
 /coverage
 
+# agent data (applications, resumes, status, logs)
+/data/
+
+# personal data
+/personaldata/
+
 # next.js
 /.next/
 /out/
