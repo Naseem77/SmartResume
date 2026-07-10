@@ -1,32 +1,76 @@
 import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
 import type { Profile, GenerateResult } from '@/types/resume'
+import { withRetry } from '@/lib/agent/retry'
 
-/** Sends a prompt to the configured provider and returns the raw text reply. */
-export async function completeText(prompt: string): Promise<string> {
+export interface CompleteOptions {
+  /** Override the model, e.g. a cheaper one for lightweight tasks. */
+  model?: string
+}
+
+/** Sends a prompt to the configured provider and returns the raw text reply. Retries transient failures. */
+export async function completeText(prompt: string, options: CompleteOptions = {}): Promise<string> {
   const provider = process.env.AI_PROVIDER || 'claude'
-  if (provider === 'openai') {
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-    const model = process.env.OPENAI_MODEL || 'gpt-4o'
-    const response = await client.chat.completions.create({
-      model,
+  return withRetry(async () => {
+    if (provider === 'openai') {
+      const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+      const model = options.model || process.env.OPENAI_MODEL || 'gpt-4o'
+      const response = await client.chat.completions.create({
+        model,
+        max_tokens: 4096,
+        response_format: { type: 'json_object' },
+        messages: [{ role: 'user', content: prompt }],
+      })
+      const text = response.choices[0]?.message?.content
+      if (!text) throw new Error('Empty response from OpenAI')
+      return text
+    }
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+    const message = await client.messages.create({
+      model: options.model || 'claude-opus-4-6',
       max_tokens: 4096,
-      response_format: { type: 'json_object' },
       messages: [{ role: 'user', content: prompt }],
     })
-    const text = response.choices[0]?.message?.content
-    if (!text) throw new Error('Empty response from OpenAI')
-    return text
-  }
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  const message = await client.messages.create({
-    model: 'claude-opus-4-6',
-    max_tokens: 4096,
-    messages: [{ role: 'user', content: prompt }],
+    const content = message.content[0]
+    if (content.type !== 'text') throw new Error('Unexpected response type from Claude')
+    return content.text
   })
-  const content = message.content[0]
-  if (content.type !== 'text') throw new Error('Unexpected response type from Claude')
-  return content.text
+}
+
+/**
+ * Model used for lightweight tasks (job fit matching). Defaults to a cheaper
+ * model on OpenAI; override with MATCHER_MODEL.
+ */
+export function matcherModel(): string | undefined {
+  if (process.env.MATCHER_MODEL) return process.env.MATCHER_MODEL
+  const provider = process.env.AI_PROVIDER || 'claude'
+  return provider === 'openai' ? 'gpt-4o-mini' : undefined
+}
+
+/** Generates a short tailored cover letter as plain text. */
+export async function generateCoverLetter(
+  profile: Profile,
+  jobDescription: string,
+  jobTitle: string,
+  company: string
+): Promise<string> {
+  const prompt = `Write a short, natural cover letter (150-220 words) for this candidate applying to the role below. Sound human and specific, no corporate buzzwords ("passionate", "dynamic", "leverage"), no flattery. Ground every claim in the candidate's real experience.
+
+## Candidate
+${JSON.stringify({ name: profile.name, summary: profile.summary, skills: profile.skills, experience: profile.experience }, null, 2)}
+
+## Role
+${jobTitle} at ${company}
+
+## Job Description
+${jobDescription.slice(0, 5000)}
+
+Respond with ONLY valid JSON: { "coverLetter": "..." }`
+  const text = await completeText(prompt)
+  const json = text.replace(/```json\s*/g, '').replace(/```/g, '').trim()
+  const parsed = JSON.parse(json)
+  if (!parsed.coverLetter) throw new Error('Empty cover letter')
+  return String(parsed.coverLetter)
 }
 
 function buildPrompt(profile: Profile, jobDescription: string, jobTitle: string, feedback?: string): string {

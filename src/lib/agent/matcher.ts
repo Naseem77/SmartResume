@@ -1,6 +1,6 @@
 import type { Profile } from '@/types/resume'
 import type { JobListing, MatchResult, SearchPreferences } from '@/types/agent'
-import { completeText } from '@/lib/ai'
+import { completeText, matcherModel } from '@/lib/ai'
 
 /**
  * Cheap local prefilter: rejects jobs containing excluded keywords and,
@@ -57,12 +57,12 @@ export function parseMatchResponse(text: string, minFitScore: number): MatchResu
   }
 }
 
-/** Asks the LLM whether the job fits the candidate profile. */
+/** Asks the LLM whether the job fits the candidate profile. Uses a cheaper model when available. */
 export async function matchJob(
   profile: Profile,
   job: JobListing,
   prefs: SearchPreferences
 ): Promise<MatchResult> {
-  const text = await completeText(buildMatchPrompt(profile, job, prefs))
+  const text = await completeText(buildMatchPrompt(profile, job, prefs), { model: matcherModel() })
   return parseMatchResponse(text, prefs.minFitScore)
 }
