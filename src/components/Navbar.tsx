@@ -48,9 +48,12 @@ export default function Navbar() {
   return (
     <nav className="bg-white/85 dark:bg-zinc-950/85 backdrop-blur-md border-b border-gray-100 dark:border-zinc-800 px-4 sm:px-6 py-2.5 flex items-center justify-between sticky top-0 z-40">
       <Link href="/" className="flex items-center gap-2 group">
-        <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-extrabold text-sm shadow-md shadow-teal-500/25 group-hover:scale-105 transition-transform">
-          S
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/icon.svg"
+          alt="SmartResume logo"
+          className="w-8 h-8 rounded-lg shadow-md shadow-teal-500/25 group-hover:scale-105 transition-transform"
+        />
         <span className="text-lg font-extrabold tracking-tight text-gray-900 dark:text-zinc-100">
           Smart<span className="text-teal-600 dark:text-teal-400">Resume</span>
         </span>

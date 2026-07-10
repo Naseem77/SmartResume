@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="0.6" stop-color="#134e4a"/>
+      <stop offset="1" stop-color="#0d9488"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.72" cy="0.25" r="0.75">
+      <stop offset="0" stop-color="#2dd4bf" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#2dd4bf" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5eead4"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="15" fill="url(#bg)"/>
+  <rect width="64" height="64" rx="15" fill="url(#glow)"/>
+
+  <!-- motion trail -->
+  <path d="M7 56 Q16 55 23 46" fill="none" stroke="#2dd4bf" stroke-width="2.5"
+        stroke-linecap="round" stroke-dasharray="1 6" opacity="0.9"/>
+
+  <!-- paper plane -->
+  <path d="M53 11 L11 33 L26 38 Z" fill="url(#wing)"/>
+  <path d="M53 11 L26 38 L28 51 L34 42 Z" fill="#ffffff"/>
+  <path d="M53 11 L34 42 L45 46 Z" fill="#99f6e4"/>
+
+  <!-- spark -->
+  <path d="M50 50 l1.6 3.9 3.9 1.6 -3.9 1.6 -1.6 3.9 -1.6 -3.9 -3.9 -1.6 3.9 -1.6 z"
+        fill="#fbbf24"/>
+  <circle cx="14" cy="14" r="1.6" fill="#5eead4" opacity="0.8"/>
+  <circle cx="21" cy="9" r="1" fill="#5eead4" opacity="0.5"/>
+</svg>
