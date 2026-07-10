@@ -5,6 +5,7 @@ import path from 'path'
 import type { ApplicationRecord } from '@/types/agent'
 import {
   applicationId,
+  jobFingerprint,
   DEFAULT_PREFERENCES,
   getApplication,
   listApplications,
@@ -131,5 +132,20 @@ describe('ids', () => {
     const b = applicationId('Acme Corp', 'Frontend Engineer')
     expect(a).toMatch(/_acme-corp_frontend-engineer_[a-z0-9]+$/)
     expect(a).not.toBe(b)
+  })
+})
+
+describe('jobFingerprint', () => {
+  it('is stable across sources for the same company and title', () => {
+    const a = jobFingerprint({ company: 'Acme Corp', title: 'Frontend Engineer' })
+    const b = jobFingerprint({ company: 'ACME  Corp!', title: 'Frontend   Engineer' })
+    expect(a).toBe('fp:acme-corp|frontend-engineer')
+    expect(b).toBe(a)
+  })
+
+  it('differs for different jobs', () => {
+    expect(jobFingerprint({ company: 'Acme', title: 'Frontend Engineer' })).not.toBe(
+      jobFingerprint({ company: 'Acme', title: 'Backend Engineer' })
+    )
   })
 })

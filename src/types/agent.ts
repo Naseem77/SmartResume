@@ -51,6 +51,7 @@ export interface ApplicationRecord {
   atsAttempts: number
   resume: TailoredResume
   resumePdfPath: string
+  coverLetter?: string
   notes?: string
 }
 

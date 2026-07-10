@@ -76,6 +76,9 @@ export async function saveApplication(
     await fs.writeFile(record.resumePdfPath, pdf)
   }
   if (html) await fs.writeFile(path.join(dir, 'resume.html'), html)
+  if (record.coverLetter) {
+    await fs.writeFile(path.join(dir, 'cover-letter.txt'), record.coverLetter)
+  }
   await fs.writeFile(path.join(dir, 'application.json'), JSON.stringify(record, null, 2))
   return dir
 }
@@ -160,6 +163,11 @@ export function slugify(text: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 60)
+}
+
+/** Board-independent fingerprint so the same role found on two boards is only processed once. */
+export function jobFingerprint(job: { company: string; title: string }): string {
+  return `fp:${slugify(job.company)}|${slugify(job.title)}`
 }
 
 export function applicationId(company: string, title: string): string {
