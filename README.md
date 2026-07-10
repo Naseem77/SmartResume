@@ -8,7 +8,7 @@
 
 [![Next.js](https://img.shields.io/badge/Next.js-000000?logo=next.js&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Tests](https://img.shields.io/badge/tests-35%20passing-brightgreen)](#quality--testing)
+[![Tests](https://img.shields.io/badge/tests-72%20passing-brightgreen)](#quality--testing)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 
 </div>
@@ -28,7 +28,10 @@ SmartResume eliminates the most time-consuming part of a job search: producing a
 | **Autonomous Agent** | Runs for a set number of hours, searching, matching, generating, and applying without supervision |
 | **Multi-Board Search** | LinkedIn and AllJobs out of the box (no keys), Indeed and Glassdoor via API keys |
 | **Review or Auto Mode** | Collect matches for one-click approval, or let the agent apply as it goes |
-| **Application Tracking** | Dashboard with live agent telemetry, statuses, fit scores, ATS breakdowns, and resume PDFs |
+| **Cover Letters** | Optional AI-written cover letter per application, saved alongside the resume |
+| **Edit Before Apply** | Tweak the tailored summary and skills in the dashboard, PDF rebuilds instantly |
+| **Application Tracking** | Dashboard with live agent telemetry, search, sorting, statuses, fit scores, ATS breakdowns, and resume PDFs |
+| **Built-In Resilience** | Automatic retries with backoff, cross-board deduplication, and a run lock against concurrent agents |
 | **Local-First Data** | Everything stays on your machine: no cloud, no account, full audit trail in `data/` |
 
 ## How It Works
@@ -122,6 +125,8 @@ All configuration lives in `.env.local` (see `.env.local.example`).
 | `AGENT_RUN_HOURS` | | Default run length when not passed on the CLI |
 | `AGENT_POLL_MINUTES` | `20` | Minutes between search cycles |
 | `AGENT_MAX_APPLICATIONS` | `10` | Stop after this many applications per run |
+| `MATCHER_MODEL` | `gpt-4o-mini` (OpenAI) | Cheaper model used for job-fit screening |
+| `GENERATE_COVER_LETTER` | `false` | `true` = generate a tailored cover letter per application |
 
 CLI flags override environment variables:
 
@@ -148,6 +153,17 @@ Boards are toggled per user in the preferences UI.
 | `LINKEDIN_EMAIL` / `LINKEDIN_PASSWORD` | LinkedIn credentials |
 | `AUTO_APPLY_HEADLESS` | `false` to watch the browser while it applies |
 
+## Reliability
+
+The agent is built to run unattended for hours without babysitting:
+
+- **Retries with backoff**: transient failures (rate limits, timeouts, 5xx) are retried up to 3 attempts with exponential backoff and jitter. Permanent errors fail fast
+- **Failure isolation**: one bad job never kills a run, the error is logged and the loop continues
+- **Deduplication**: jobs are fingerprinted by company and title, so the same role seen on two boards is processed once
+- **Run lock**: a second agent refuses to start while one is already running
+- **Config validation**: misconfigured `.env.local` values are caught with a clear message before the run starts, both on the CLI and the dashboard Start button
+- **ATS fix loop**: each resume gets up to 3 generation passes with scoring feedback until it clears your threshold
+
 ## Data, Privacy & Audit Trail
 
 Every application is fully auditable on disk:
@@ -171,12 +187,13 @@ personaldata/
 ## Quality & Testing
 
 ```bash
-npm test          # 35 vitest tests
+npm test          # 65 unit tests (vitest)
+npm run test:e2e  # end-to-end smoke tests (real server + headless browser)
 npm run lint      # ESLint
 npm run build     # production build
 ```
 
-The suite covers the persistence layer, job board parsers, match filtering, the ATS fix loop, the agent's time-boxed run loop, failure isolation (one bad job never kills a run), and the one-click apply flow.
+The unit suite covers the persistence layer, job board parsers, match filtering, the ATS fix loop, retry with backoff, cross-board deduplication, cover letter generation, config validation, the agent's time-boxed run loop, failure isolation (one bad job never kills a run), and the one-click apply flow. The E2E suite boots the production server and exercises the dashboard and APIs in a real browser. Run `npm run build` before `npm run test:e2e`.
 
 ## License
 
