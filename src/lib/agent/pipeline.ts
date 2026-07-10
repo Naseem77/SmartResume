@@ -6,7 +6,7 @@ import type {
   MatchResult,
   SearchPreferences,
 } from '@/types/agent'
-import { generateTailoredResume } from '@/lib/ai'
+import { generateTailoredResume, generateCoverLetter } from '@/lib/ai'
 import { scrapeJobUrl } from '@/lib/scraper'
 import { buildResumeHtml } from '@/lib/resumeTemplate'
 import { renderPdf } from '@/lib/pdf'
@@ -22,6 +22,9 @@ export interface PipelineDeps {
   pdf?: typeof renderPdf
   /** When true, skip applying: save the package and let the user apply from the dashboard. Defaults to COLLECT_ONLY env. */
   collectOnly?: boolean
+  /** When true, also generate a cover letter. Defaults to GENERATE_COVER_LETTER env. */
+  coverLetter?: boolean
+  generateCover?: typeof generateCoverLetter
   log?: (msg: string) => void
 }
 
@@ -94,8 +97,21 @@ export async function processJob(
   )
 
   // 3. PDF
-  const html = buildResumeHtml(result.resume, job.title)
+  const html = buildResumeHtml(result.resume)
   const pdfBuffer = await pdf(html)
+
+  // 3b. Optional cover letter
+  let coverLetter: string | undefined
+  const wantCover = deps.coverLetter ?? process.env.GENERATE_COVER_LETTER === 'true'
+  if (wantCover) {
+    try {
+      const generateCover = deps.generateCover ?? generateCoverLetter
+      coverLetter = await generateCover(profile, description, job.title, job.company)
+      log('Cover letter generated')
+    } catch (error) {
+      log(`Cover letter failed: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
 
   // 4. Apply (or collect for manual one-click apply from the dashboard)
   const collectOnly = deps.collectOnly ?? process.env.COLLECT_ONLY === 'true'
@@ -128,6 +144,7 @@ export async function processJob(
     atsAttempts: attempts,
     resume: result.resume,
     resumePdfPath,
+    coverLetter,
     notes: applyResult.notes,
   }
   await saveApplication(record, pdfBuffer, html)

@@ -144,3 +144,57 @@ describe('processJob', () => {
     expect(record.job.description).toContain('Scraped description')
   })
 })
+
+describe('processJob cover letter', () => {
+  it('generates and persists a cover letter when enabled', async () => {
+    const generate = vi.fn().mockResolvedValue(result(88))
+    const pdf = vi.fn().mockResolvedValue(Buffer.from('%PDF-fake'))
+    const generateCover = vi.fn().mockResolvedValue('Dear Acme, I am a great fit.')
+
+    const record = await processJob(
+      { ...job, id: 'linkedin-cover-1' },
+      profile, DEFAULT_PREFERENCES, match,
+      { generate, pdf, coverLetter: true, generateCover }
+    )
+
+    expect(generateCover).toHaveBeenCalledWith(profile, expect.any(String), job.title, job.company)
+    expect(record.coverLetter).toBe('Dear Acme, I am a great fit.')
+    const files = await fs.readdir(path.join(tmpDir, 'data', 'applications', record.id))
+    expect(files).toContain('cover-letter.txt')
+    const letter = await fs.readFile(
+      path.join(tmpDir, 'data', 'applications', record.id, 'cover-letter.txt'),
+      'utf-8'
+    )
+    expect(letter).toContain('great fit')
+  })
+
+  it('continues without a cover letter when generation fails', async () => {
+    const generate = vi.fn().mockResolvedValue(result(88))
+    const pdf = vi.fn().mockResolvedValue(Buffer.from('%PDF-fake'))
+    const generateCover = vi.fn().mockRejectedValue(new Error('llm down'))
+
+    const record = await processJob(
+      { ...job, id: 'linkedin-cover-2' },
+      profile, DEFAULT_PREFERENCES, match,
+      { generate, pdf, coverLetter: true, generateCover }
+    )
+
+    expect(record.coverLetter).toBeUndefined()
+    expect(record.status).toBe('prepared')
+  })
+
+  it('skips cover letter when disabled', async () => {
+    const generate = vi.fn().mockResolvedValue(result(88))
+    const pdf = vi.fn().mockResolvedValue(Buffer.from('%PDF-fake'))
+    const generateCover = vi.fn()
+
+    const record = await processJob(
+      { ...job, id: 'linkedin-cover-3' },
+      profile, DEFAULT_PREFERENCES, match,
+      { generate, pdf, coverLetter: false, generateCover }
+    )
+
+    expect(generateCover).not.toHaveBeenCalled()
+    expect(record.coverLetter).toBeUndefined()
+  })
+})
