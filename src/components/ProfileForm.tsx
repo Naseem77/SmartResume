@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import LinkedInImport from '@/components/LinkedInImport'
 import type { Profile, Experience, Education, Project } from '@/types/resume'
 
@@ -20,7 +19,7 @@ function MonthYearSelect({ value, onChange, placeholder }: { value: string; onCh
   const parts = value.split(' ')
   const month = MONTHS.includes(parts[0]) ? parts[0] : ''
   const year = parts[1] || ''
-  const selectClass = "border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+  const selectClass = "border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white dark:bg-zinc-900"
   return (
     <div className="flex gap-1.5">
       <select className={selectClass} value={month} onChange={e => onChange(`${e.target.value} ${year}`.trim())}>
@@ -49,18 +48,18 @@ function DateRangePicker({ value, onChange }: { value: string; onChange: (v: str
     <div className="space-y-2">
       <div className="flex items-center gap-3">
         <div>
-          <p className="text-xs text-gray-500 mb-1">Start</p>
+          <p className="text-xs text-gray-500 dark:text-zinc-400 mb-1">Start</p>
           <MonthYearSelect value={start} onChange={v => { setStart(v); emit(v, end, present) }} />
         </div>
-        <div className="mt-4 text-gray-400">–</div>
+        <div className="mt-4 text-gray-400 dark:text-zinc-500">–</div>
         <div>
-          <p className="text-xs text-gray-500 mb-1">End</p>
+          <p className="text-xs text-gray-500 dark:text-zinc-400 mb-1">End</p>
           {present
-            ? <span className="text-sm font-medium text-teal-600 px-2 py-1.5 block">Present</span>
+            ? <span className="text-sm font-medium text-teal-600 dark:text-teal-400 px-2 py-1.5 block">Present</span>
             : <MonthYearSelect value={end} onChange={v => { setEnd(v); emit(start, v, false) }} placeholder="Year" />
           }
         </div>
-        <label className="flex items-center gap-1.5 mt-4 cursor-pointer text-sm text-gray-600">
+        <label className="flex items-center gap-1.5 mt-4 cursor-pointer text-sm text-gray-600 dark:text-zinc-400">
           <input
             type="checkbox"
             checked={present}
@@ -87,14 +86,12 @@ export default function ProfileForm() {
   const [profile, setProfile] = useState<Profile>(emptyProfile)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [hasSaved, setHasSaved] = useState(false)
   const [skillInput, setSkillInput] = useState('')
 
   useEffect(() => {
     fetch('/api/profile').then(r => r.json()).then(data => {
       if (!data.error) {
         setProfile(data)
-        if (data.name || data.email) setHasSaved(true)
       }
     })
   }, [])
@@ -108,7 +105,6 @@ export default function ProfileForm() {
     })
     setSaving(false)
     setSaved(true)
-    setHasSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
 
@@ -157,23 +153,28 @@ export default function ProfileForm() {
     }))
   }
 
+  const filledCount = [
+    profile.name && profile.email,
+    profile.summary,
+    profile.experience.length > 0,
+    profile.education.length > 0,
+    profile.skills.length > 0,
+  ].filter(Boolean).length
+
   return (
-    <div className="max-w-3xl mx-auto space-y-10">
+    <div className="max-w-3xl mx-auto space-y-6 pb-24">
       {/* LinkedIn Import */}
       <LinkedInImport onImport={handleLinkedInImport} />
 
       {/* Personal Info */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
-          <span className="w-1.5 h-5 bg-teal-500 rounded-full inline-block" />
-          Personal Info
-        </h2>
-        <div className="grid grid-cols-2 gap-4">
+      <Section icon="👤" title="Personal Info" subtitle="How recruiters can reach you">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {(['name', 'email', 'phone', 'location', 'linkedin', 'website'] as const).map(f => (
             <div key={f}>
-              <label className="block text-sm font-medium text-gray-700 capitalize mb-1">{f}</label>
+              <label className={labelClass}>{f}</label>
               <input
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className={inputClass}
+                placeholder={FIELD_PLACEHOLDERS[f]}
                 value={profile[f]}
                 onChange={e => updateField(f, e.target.value)}
               />
@@ -181,208 +182,304 @@ export default function ProfileForm() {
           ))}
         </div>
         <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Summary</label>
+          <label className={labelClass}>Summary</label>
           <textarea
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className={inputClass}
             rows={3}
+            placeholder="A 2-3 sentence pitch: who you are, what you do best, and what you're looking for."
             value={profile.summary}
             onChange={e => updateField('summary', e.target.value)}
           />
         </div>
-      </section>
+      </Section>
 
       {/* Experience */}
-      <section>
-        <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <span className="w-1.5 h-5 bg-teal-500 rounded-full inline-block" />
-            Experience
-          </h2>
-          <button
-            onClick={() => updateField('experience', [...profile.experience, { ...emptyExp, bullets: [] }])}
-            className="text-sm text-teal-600 hover:text-teal-800 font-medium"
-          >+ Add</button>
+      <Section
+        icon="💼"
+        title="Experience"
+        subtitle="Most recent first"
+        action={
+          <AddButton onClick={() => updateField('experience', [...profile.experience, { ...emptyExp, bullets: [] }])} />
+        }
+      >
+        {profile.experience.length === 0 && (
+          <EmptyState text="No experience added yet" hint="Add your work history so the AI can tailor resumes around it." />
+        )}
+        <div className="space-y-4">
+          {profile.experience.map((exp, i) => (
+            <EntryCard
+              key={i}
+              index={i}
+              label={exp.title || exp.company || `Position ${i + 1}`}
+              onRemove={() => updateField('experience', profile.experience.filter((_, idx) => idx !== i))}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(['title', 'company', 'location'] as const).map(f => (
+                  <div key={f}>
+                    <label className={smallLabelClass}>{f}</label>
+                    <input
+                      className={inputClass}
+                      value={exp[f]}
+                      onChange={e => updateExp(i, f, e.target.value)}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div>
+                <label className={smallLabelClass}>Dates</label>
+                <DateRangePicker value={exp.dates} onChange={v => updateExp(i, 'dates', v)} />
+              </div>
+              <div>
+                <label className={smallLabelClass}>Highlights (one per line)</label>
+                <textarea
+                  className={inputClass}
+                  rows={4}
+                  placeholder={"Led migration to microservices, cutting deploy time by 60%\nMentored 3 junior engineers"}
+                  value={exp.bullets.join('\n')}
+                  onChange={e => updateExp(i, 'bullets', e.target.value.split('\n'))}
+                />
+              </div>
+            </EntryCard>
+          ))}
         </div>
-        {profile.experience.map((exp, i) => (
-          <div key={i} className="border border-gray-200 rounded-lg p-4 mb-4 space-y-3 bg-gray-50">
-            <div className="grid grid-cols-2 gap-3">
-              {(['title', 'company', 'location'] as const).map(f => (
-                <div key={f}>
-                  <label className="block text-xs font-medium text-gray-600 capitalize mb-1">{f}</label>
-                  <input
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    value={exp[f]}
-                    onChange={e => updateExp(i, f, e.target.value)}
-                  />
-                </div>
-              ))}
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Dates</label>
-              <DateRangePicker value={exp.dates} onChange={v => updateExp(i, 'dates', v)} />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Bullets (one per line)</label>
-              <textarea
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                rows={4}
-                value={exp.bullets.join('\n')}
-                onChange={e => updateExp(i, 'bullets', e.target.value.split('\n'))}
-              />
-            </div>
-            <button
-              onClick={() => updateField('experience', profile.experience.filter((_, idx) => idx !== i))}
-              className="text-xs text-red-500 hover:text-red-700"
-            >Remove</button>
-          </div>
-        ))}
-      </section>
+      </Section>
 
       {/* Education */}
-      <section>
-        <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <span className="w-1.5 h-5 bg-teal-500 rounded-full inline-block" />
-            Education
-          </h2>
-          <button
-            onClick={() => updateField('education', [...profile.education, { ...emptyEdu }])}
-            className="text-sm text-teal-600 hover:text-teal-800 font-medium"
-          >+ Add</button>
+      <Section
+        icon="🎓"
+        title="Education"
+        action={<AddButton onClick={() => updateField('education', [...profile.education, { ...emptyEdu }])} />}
+      >
+        {profile.education.length === 0 && (
+          <EmptyState text="No education added yet" hint="Degrees, bootcamps, and certifications all count." />
+        )}
+        <div className="space-y-4">
+          {profile.education.map((edu, i) => (
+            <EntryCard
+              key={i}
+              index={i}
+              label={edu.school || `Education ${i + 1}`}
+              onRemove={() => updateField('education', profile.education.filter((_, idx) => idx !== i))}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(['school', 'degree', 'field'] as const).map(f => (
+                  <div key={f}>
+                    <label className={smallLabelClass}>{f}</label>
+                    <input
+                      className={inputClass}
+                      value={edu[f]}
+                      onChange={e => updateEdu(i, f, e.target.value)}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div>
+                <label className={smallLabelClass}>Dates</label>
+                <DateRangePicker value={edu.dates} onChange={v => updateEdu(i, 'dates', v)} />
+              </div>
+            </EntryCard>
+          ))}
         </div>
-        {profile.education.map((edu, i) => (
-          <div key={i} className="border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              {(['school', 'degree', 'field'] as const).map(f => (
-                <div key={f}>
-                  <label className="block text-xs font-medium text-gray-600 capitalize mb-1">{f}</label>
-                  <input
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    value={edu[f]}
-                    onChange={e => updateEdu(i, f, e.target.value)}
-                  />
-                </div>
-              ))}
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Dates</label>
-              <DateRangePicker value={edu.dates} onChange={v => updateEdu(i, 'dates', v)} />
-            </div>
-            <button
-              onClick={() => updateField('education', profile.education.filter((_, idx) => idx !== i))}
-              className="text-xs text-red-500 hover:text-red-700 mt-3 block"
-            >Remove</button>
-          </div>
-        ))}
-      </section>
+      </Section>
 
       {/* Skills */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
-          <span className="w-1.5 h-5 bg-teal-500 rounded-full inline-block" />
-          Skills
-        </h2>
+      <Section icon="⚡" title="Skills" subtitle="Press Enter to add each one">
         <div className="flex gap-2 mb-3">
           <input
-            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-            placeholder="Add a skill..."
+            className={inputClass + ' flex-1'}
+            placeholder="e.g. TypeScript, React, PostgreSQL..."
             value={skillInput}
             onChange={e => setSkillInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSkill())}
           />
           <button
             onClick={addSkill}
-            className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 transition-colors"
+            className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
           >Add</button>
         </div>
+        {profile.skills.length === 0 && (
+          <p className="text-sm text-gray-400 dark:text-zinc-500">No skills yet. These are matched against job requirements, so add plenty.</p>
+        )}
         <div className="flex flex-wrap gap-2">
           {profile.skills.map(skill => (
-            <span key={skill} className="flex items-center gap-1 bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-sm">
+            <span key={skill} className="group flex items-center gap-1 bg-teal-100 dark:bg-teal-500/15 text-teal-700 dark:text-teal-300 px-3 py-1 rounded-full text-sm font-medium border border-teal-200/60 dark:border-teal-500/20">
               {skill}
               <button
                 onClick={() => updateField('skills', profile.skills.filter(s => s !== skill))}
-                className="text-teal-600 hover:text-teal-900 font-bold ml-1"
+                className="text-teal-500 hover:text-teal-900 dark:hover:text-teal-100 font-bold ml-0.5 opacity-60 group-hover:opacity-100 transition-opacity"
+                aria-label={`Remove ${skill}`}
               >×</button>
             </span>
           ))}
         </div>
-      </section>
+      </Section>
 
       {/* Projects */}
-      <section>
-        <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <span className="w-1.5 h-5 bg-teal-500 rounded-full inline-block" />
-            Projects
-          </h2>
-          <button
-            onClick={() => updateField('projects', [...profile.projects, { ...emptyProject, technologies: [] }])}
-            className="text-sm text-teal-600 hover:text-teal-800 font-medium"
-          >+ Add</button>
-        </div>
-        {profile.projects.map((proj, i) => (
-          <div key={i} className="border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
-                <input
-                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  value={proj.name}
-                  onChange={e => updateProject(i, 'name', e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">URL</label>
-                <input
-                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  value={proj.url || ''}
-                  onChange={e => updateProject(i, 'url', e.target.value)}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
-              <textarea
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                rows={2}
-                value={proj.description}
-                onChange={e => updateProject(i, 'description', e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Technologies (comma-separated)</label>
-              <input
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                value={proj.technologies.join(', ')}
-                onChange={e => updateProject(i, 'technologies', e.target.value.split(',').map(t => t.trim()).filter(Boolean))}
-              />
-            </div>
-            <button
-              onClick={() => updateField('projects', profile.projects.filter((_, idx) => idx !== i))}
-              className="text-xs text-red-500 hover:text-red-700"
-            >Remove</button>
-          </div>
-        ))}
-      </section>
-
-      {/* Save Button */}
-      <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-        <button
-          onClick={save}
-          disabled={saving}
-          className="px-6 py-2.5 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 disabled:opacity-50 transition-colors"
-        >
-          {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Profile'}
-        </button>
-        {hasSaved && (
-          <Link
-            href="/apply"
-            className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
-          >
-            Next: Generate Resume →
-          </Link>
+      <Section
+        icon="🛠️"
+        title="Projects"
+        subtitle="Optional, but great for standing out"
+        action={<AddButton onClick={() => updateField('projects', [...profile.projects, { ...emptyProject, technologies: [] }])} />}
+      >
+        {profile.projects.length === 0 && (
+          <EmptyState text="No projects added yet" hint="Side projects and open source work show initiative." />
         )}
+        <div className="space-y-4">
+          {profile.projects.map((proj, i) => (
+            <EntryCard
+              key={i}
+              index={i}
+              label={proj.name || `Project ${i + 1}`}
+              onRemove={() => updateField('projects', profile.projects.filter((_, idx) => idx !== i))}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className={smallLabelClass}>Name</label>
+                  <input
+                    className={inputClass}
+                    value={proj.name}
+                    onChange={e => updateProject(i, 'name', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className={smallLabelClass}>URL</label>
+                  <input
+                    className={inputClass}
+                    value={proj.url || ''}
+                    onChange={e => updateProject(i, 'url', e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className={smallLabelClass}>Description</label>
+                <textarea
+                  className={inputClass}
+                  rows={2}
+                  value={proj.description}
+                  onChange={e => updateProject(i, 'description', e.target.value)}
+                />
+              </div>
+              <div>
+                <label className={smallLabelClass}>Technologies (comma-separated)</label>
+                <input
+                  className={inputClass}
+                  value={proj.technologies.join(', ')}
+                  onChange={e => updateProject(i, 'technologies', e.target.value.split(',').map(t => t.trim()).filter(Boolean))}
+                />
+              </div>
+            </EntryCard>
+          ))}
+        </div>
+      </Section>
+
+      {/* Sticky Save Bar */}
+      <div className="sticky bottom-4 z-10">
+        <div className="flex items-center justify-between gap-4 bg-white/95 dark:bg-zinc-900/95 backdrop-blur border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-lg px-5 py-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex gap-1" aria-hidden>
+              {[0, 1, 2, 3, 4].map(n => (
+                <span
+                  key={n}
+                  className={`w-6 h-1.5 rounded-full transition-colors ${n < filledCount ? 'bg-teal-500' : 'bg-gray-200 dark:bg-zinc-700'}`}
+                />
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 dark:text-zinc-400 truncate">
+              {filledCount === 5 ? 'Profile complete 🎉' : `${filledCount}/5 sections filled`}
+            </p>
+          </div>
+          <button
+            onClick={save}
+            disabled={saving}
+            className="shrink-0 px-6 py-2.5 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 disabled:opacity-50 transition-all shadow-md shadow-teal-600/20 hover:-translate-y-px"
+          >
+            {saving ? 'Saving...' : saved ? 'Saved ✓' : 'Save Profile'}
+          </button>
+        </div>
       </div>
+    </div>
+  )
+}
+
+const inputClass = 'w-full border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-zinc-800/80 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-shadow'
+const labelClass = 'block text-sm font-medium text-gray-700 dark:text-zinc-300 capitalize mb-1'
+const smallLabelClass = 'block text-xs font-medium text-gray-600 dark:text-zinc-400 capitalize mb-1'
+
+const FIELD_PLACEHOLDERS: Record<string, string> = {
+  name: 'Jane Doe',
+  email: 'jane@example.com',
+  phone: '+1 555 000 1234',
+  location: 'Tel Aviv, Israel',
+  linkedin: 'linkedin.com/in/janedoe',
+  website: 'janedoe.dev',
+}
+
+function Section({ icon, title, subtitle, action, children }: {
+  icon: string
+  title: string
+  subtitle?: string
+  action?: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <section className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm p-6">
+      <div className="flex items-start justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <span className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-500/10 border border-teal-100 dark:border-teal-500/20 flex items-center justify-center text-lg" aria-hidden>
+            {icon}
+          </span>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-zinc-100 leading-tight">{title}</h2>
+            {subtitle && <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">{subtitle}</p>}
+          </div>
+        </div>
+        {action}
+      </div>
+      {children}
+    </section>
+  )
+}
+
+function AddButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-200 font-medium px-3 py-1.5 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-500/10 transition-colors"
+    >+ Add</button>
+  )
+}
+
+function EmptyState({ text, hint }: { text: string; hint: string }) {
+  return (
+    <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-xl mb-4">
+      <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">{text}</p>
+      <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">{hint}</p>
+    </div>
+  )
+}
+
+function EntryCard({ index, label, onRemove, children }: {
+  index: number
+  label: string
+  onRemove: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div className="border border-gray-200 dark:border-zinc-800 rounded-xl bg-gray-50 dark:bg-zinc-800/50 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="w-5 h-5 rounded-md bg-teal-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+            {index + 1}
+          </span>
+          <p className="text-sm font-medium text-gray-700 dark:text-zinc-300 truncate">{label}</p>
+        </div>
+        <button
+          onClick={onRemove}
+          className="text-xs text-gray-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors shrink-0"
+          aria-label={`Remove ${label}`}
+        >Remove</button>
+      </div>
+      <div className="p-4 space-y-3">{children}</div>
     </div>
   )
 }
