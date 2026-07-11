@@ -15,6 +15,7 @@ interface FieldDef {
   key: string
   label: string
   hint?: string
+  info?: string
   type: 'text' | 'secret' | 'number' | 'toggle'
   placeholder?: string
   suffix?: string
@@ -46,11 +47,11 @@ const SECTIONS: SectionDef[] = [
     title: 'Agent Behavior',
     subtitle: 'How the agent runs and what it does with matches',
     fields: [
-      { key: 'collectOnly', label: 'Review before applying', type: 'toggle', hint: 'On: collect matches for one-click review. Off: apply automatically' },
-      { key: 'agentRunHours', label: 'Default run length', type: 'number', hint: 'Used when you don\u2019t pass hours explicitly', suffix: 'hours' },
-      { key: 'agentPollMinutes', label: 'Search cycle interval', type: 'number', hint: 'Minutes between search sweeps', suffix: 'min' },
-      { key: 'agentMaxApplications', label: 'Max applications per run', type: 'number', hint: 'The agent stops after this many', suffix: 'apps' },
-      { key: 'generateCoverLetter', label: 'Generate cover letters', type: 'toggle', hint: 'Write a tailored cover letter for every application' },
+      { key: 'collectOnly', label: 'Review before applying', type: 'toggle', info: 'When on, the agent only collects matching jobs so you can review and apply with one click. When off, it tailors a resume and applies fully on its own.' },
+      { key: 'agentRunHours', label: 'Default run length', type: 'number', info: 'How many hours the agent keeps running when you start it without passing hours explicitly.', suffix: 'hours' },
+      { key: 'agentPollMinutes', label: 'Search cycle interval', type: 'number', info: 'How many minutes the agent waits between job-search sweeps across the boards.', suffix: 'min' },
+      { key: 'agentMaxApplications', label: 'Max applications per run', type: 'number', info: 'A safety cap: the agent stops applying once it reaches this number in a single run.', suffix: 'apps' },
+      { key: 'generateCoverLetter', label: 'Generate cover letters', type: 'toggle', info: 'When on, the AI writes a tailored cover letter for every application alongside the resume.' },
     ],
   },
   {
@@ -59,9 +60,9 @@ const SECTIONS: SectionDef[] = [
     title: 'Job Board Keys',
     subtitle: 'LinkedIn works without keys. Add these to unlock more boards',
     fields: [
-      { key: 'indeedPublisherId', label: 'Indeed publisher ID', type: 'text', placeholder: '1234567890' },
-      { key: 'glassdoorPartnerId', label: 'Glassdoor partner ID', type: 'text', placeholder: '12345' },
-      { key: 'glassdoorApiKey', label: 'Glassdoor API key', type: 'secret', placeholder: 'key...' },
+      { key: 'indeedPublisherId', label: 'Indeed publisher ID', type: 'text', info: 'Your Indeed Publisher API ID. Lets the agent search Indeed job listings. Free to request from the Indeed Publisher program.', placeholder: '1234567890' },
+      { key: 'glassdoorPartnerId', label: 'Glassdoor partner ID', type: 'text', info: 'Your Glassdoor Partner ID, used together with the API key to search Glassdoor listings.', placeholder: '12345' },
+      { key: 'glassdoorApiKey', label: 'Glassdoor API key', type: 'secret', info: 'The API key that pairs with your Glassdoor partner ID. Stored locally, only sent to Glassdoor.', placeholder: 'key...' },
     ],
   },
   {
@@ -70,10 +71,10 @@ const SECTIONS: SectionDef[] = [
     title: 'Auto-Submit',
     subtitle: 'Let the agent complete LinkedIn Easy Apply on its own',
     fields: [
-      { key: 'autoApply', label: 'Auto-submit Easy Apply', type: 'toggle', hint: 'Automating logins may violate LinkedIn\u2019s terms. Use at your own risk' },
-      { key: 'linkedinEmail', label: 'LinkedIn email', type: 'text', placeholder: 'you@example.com' },
-      { key: 'linkedinPassword', label: 'LinkedIn password', type: 'secret', placeholder: '••••••••' },
-      { key: 'autoApplyHeadless', label: 'Headless browser', type: 'toggle', hint: 'Off: watch the browser window while it applies' },
+      { key: 'autoApply', label: 'Auto-submit Easy Apply', type: 'toggle', info: 'Lets the agent log in and complete LinkedIn Easy Apply forms by itself. Automating logins may violate LinkedIn\u2019s terms, use at your own risk.' },
+      { key: 'linkedinEmail', label: 'LinkedIn email', type: 'text', info: 'The email of the LinkedIn account the agent signs in with to auto-submit applications.', placeholder: 'you@example.com' },
+      { key: 'linkedinPassword', label: 'LinkedIn password', type: 'secret', info: 'Password for that LinkedIn account. Stored locally in personaldata/settings.json, never sent anywhere but LinkedIn.', placeholder: '••••••••' },
+      { key: 'autoApplyHeadless', label: 'Headless browser', type: 'toggle', info: 'When on, the automated browser runs invisibly in the background. Turn off to watch it fill and submit applications.' },
     ],
   },
 ]
@@ -372,6 +373,30 @@ function SourceChip({ saved, env }: { saved: boolean; env: string | null }) {
   )
 }
 
+function InfoTip({ text }: { text: string }) {
+  return (
+    <span className="relative inline-flex group/tip shrink-0">
+      <span
+        tabIndex={0}
+        aria-label={text}
+        className="w-4 h-4 rounded-full border border-gray-300 dark:border-zinc-600 text-gray-400 dark:text-zinc-500 flex items-center justify-center cursor-help select-none hover:border-teal-500 hover:text-teal-500 dark:hover:border-teal-400 dark:hover:text-teal-400 focus:outline-none focus:border-teal-500 focus:text-teal-500 transition-colors"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="w-2.5 h-2.5" aria-hidden>
+          <circle cx="12" cy="5" r="0.5" fill="currentColor" />
+          <path d="M12 10v9" />
+        </svg>
+      </span>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-60 rounded-lg bg-gray-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs leading-relaxed px-3 py-2 shadow-lg opacity-0 translate-y-1 transition-all duration-150 group-hover/tip:opacity-100 group-hover/tip:translate-y-0 group-focus-within/tip:opacity-100 group-focus-within/tip:translate-y-0 z-20"
+      >
+        {text}
+        <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-zinc-100" aria-hidden />
+      </span>
+    </span>
+  )
+}
+
 function FieldRow({ field, value, envValue, hasSecret, revealedValue, onChange, onClear, onReveal }: {
   field: FieldDef
   value: unknown
@@ -390,7 +415,10 @@ function FieldRow({ field, value, envValue, hasSecret, revealedValue, onChange, 
     return (
       <div className="flex items-center gap-4 py-4">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium">{field.label}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-medium">{field.label}</p>
+            {field.info && <InfoTip text={field.info} />}
+          </div>
           {field.hint && <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">{field.hint}</p>}
         </div>
         <SourceChip saved={typeof value === 'boolean'} env={envValue} />
@@ -414,7 +442,10 @@ function FieldRow({ field, value, envValue, hasSecret, revealedValue, onChange, 
     return (
       <div className="flex items-center gap-4 py-4">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium">{field.label}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-medium">{field.label}</p>
+            {field.info && <InfoTip text={field.info} />}
+          </div>
           {field.hint && <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">{field.hint}</p>}
         </div>
         <SourceChip saved={saved} env={envValue} />
@@ -450,7 +481,10 @@ function FieldRow({ field, value, envValue, hasSecret, revealedValue, onChange, 
   return (
     <div className="py-4">
       <div className="flex items-center gap-3 mb-2">
-        <p className="text-sm font-medium">{field.label}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm font-medium">{field.label}</p>
+          {field.info && <InfoTip text={field.info} />}
+        </div>
         <SourceChip saved={saved || (isSecret && hasSecret && value === undefined)} env={envValue} />
       </div>
       {field.hint && <p className="text-xs text-gray-400 dark:text-zinc-500 mb-2 -mt-1">{field.hint}</p>}
