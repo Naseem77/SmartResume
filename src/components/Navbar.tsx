@@ -19,7 +19,8 @@ function ThemeToggle() {
   const toggle = () => {
     const next = !dark
     setDark(next)
-    localStorage.setItem('theme', next ? 'dark' : 'light')
+    document.cookie = `theme=${next ? 'dark' : 'light'}; path=/; max-age=31536000; samesite=lax`
+    try { localStorage.setItem('theme', next ? 'dark' : 'light') } catch {}
     document.documentElement.classList.toggle('dark', next)
   }
 
