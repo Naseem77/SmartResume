@@ -19,7 +19,7 @@ loadEnv({ path: path.join(process.cwd(), '.env') })
 import { runAgent } from '../src/lib/agent/runner'
 import { loadPreferences } from '../src/lib/agent/store'
 import { assertValidEnv } from '../src/lib/config'
-import { loadLlmSettings } from '../src/lib/settings'
+import { applySettingsToEnv, loadLlmSettings } from '../src/lib/settings'
 
 function parseArgs(argv: string[]): { hours?: number; pollMinutes?: number; maxApps?: number } {
   const out: { hours?: number; pollMinutes?: number; maxApps?: number } = {}
@@ -36,6 +36,7 @@ function parseArgs(argv: string[]): { hours?: number; pollMinutes?: number; maxA
 async function main() {
   const args = parseArgs(process.argv.slice(2))
   const stored = await loadLlmSettings()
+  applySettingsToEnv(stored)
   assertValidEnv(process.env, { provider: stored.provider, hasApiKey: Boolean(stored.apiKey) })
   const prefs = await loadPreferences()
 

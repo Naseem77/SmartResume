@@ -99,3 +99,65 @@ describe('maskApiKey', () => {
     expect(maskApiKey('sk-proj-abcdefghijklmnop')).toBe('sk-pr••••••••mnop')
   })
 })
+
+describe('applySettingsToEnv', () => {
+  it('overlays stored values onto env (stored wins)', async () => {
+    const { applySettingsToEnv } = await import('@/lib/settings')
+    const env = { COLLECT_ONLY: 'false', AGENT_POLL_MINUTES: '20' } as unknown as NodeJS.ProcessEnv
+    applySettingsToEnv(
+      {
+        provider: 'openai',
+        apiKey: 'sk-stored',
+        model: 'gpt-4o',
+        collectOnly: true,
+        agentPollMinutes: 5,
+        agentMaxApplications: 3,
+        generateCoverLetter: false,
+        indeedPublisherId: 'pub-1',
+        autoApply: true,
+        linkedinEmail: 'a@b.c',
+        linkedinPassword: 'pw',
+        autoApplyHeadless: false,
+      },
+      env
+    )
+    expect(env.AI_PROVIDER).toBe('openai')
+    expect(env.OPENAI_API_KEY).toBe('sk-stored')
+    expect(env.OPENAI_MODEL).toBe('gpt-4o')
+    expect(env.COLLECT_ONLY).toBe('true')
+    expect(env.AGENT_POLL_MINUTES).toBe('5')
+    expect(env.AGENT_MAX_APPLICATIONS).toBe('3')
+    expect(env.GENERATE_COVER_LETTER).toBe('false')
+    expect(env.INDEED_PUBLISHER_ID).toBe('pub-1')
+    expect(env.AUTO_APPLY).toBe('true')
+    expect(env.LINKEDIN_EMAIL).toBe('a@b.c')
+    expect(env.LINKEDIN_PASSWORD).toBe('pw')
+    expect(env.AUTO_APPLY_HEADLESS).toBe('false')
+  })
+
+  it('leaves env untouched for unset fields', async () => {
+    const { applySettingsToEnv } = await import('@/lib/settings')
+    const env = { COLLECT_ONLY: 'true', AGENT_POLL_MINUTES: '20', ANTHROPIC_API_KEY: 'env-key' } as unknown as NodeJS.ProcessEnv
+    applySettingsToEnv({}, env)
+    expect(env.COLLECT_ONLY).toBe('true')
+    expect(env.AGENT_POLL_MINUTES).toBe('20')
+    expect(env.ANTHROPIC_API_KEY).toBe('env-key')
+    expect(env.AI_PROVIDER).toBeUndefined()
+  })
+
+  it('routes apiKey to the anthropic var for claude', async () => {
+    const { applySettingsToEnv } = await import('@/lib/settings')
+    const env = {} as unknown as NodeJS.ProcessEnv
+    applySettingsToEnv({ provider: 'claude', apiKey: 'sk-ant-x' }, env)
+    expect(env.ANTHROPIC_API_KEY).toBe('sk-ant-x')
+    expect(env.OPENAI_API_KEY).toBeUndefined()
+  })
+
+  it('round-trips full AppSettings through save/load', async () => {
+    await saveLlmSettings({ provider: 'openai', collectOnly: true, agentRunHours: 2, glassdoorApiKey: 'g-key' })
+    const loaded = await loadLlmSettings()
+    expect(loaded.collectOnly).toBe(true)
+    expect(loaded.agentRunHours).toBe(2)
+    expect(loaded.glassdoorApiKey).toBe('g-key')
+  })
+})
