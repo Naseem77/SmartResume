@@ -33,7 +33,7 @@ SmartResume eliminates the most time-consuming part of a job search: producing a
 | **Application Tracking** | Dashboard with live agent telemetry, search, sorting, statuses, fit scores, ATS breakdowns, and resume PDFs |
 | **Built-In Resilience** | Automatic retries with backoff, cross-board deduplication, and a run lock against concurrent agents |
 | **Smart Filters** | Target roles by years of experience (auto-calculated from your profile) and job posting freshness (last 2h to 7d) |
-| **In-App Settings** | Manage your LLM API key from the Settings page: no `.env` editing required |
+| **In-App Settings** | Manage everything from the Settings page: LLM keys, agent behavior, board keys, auto-submit. No `.env` editing required |
 | **Light & Dark Themes** | Full light/dark mode with a one-click toggle in the navbar |
 | **Local-First Data** | Everything stays on your machine: no cloud, no account, full audit trail in `data/` |
 
@@ -112,11 +112,11 @@ Simple Easy Apply flows are completed end to end (resume upload and submit). App
 
 ## Configuration Reference
 
-All configuration lives in `.env.local` (see `.env.local.example`).
+All configuration lives in `.env.local` (see `.env.local.example`) **or** on the **Settings page** in the UI, which covers every option below: provider and keys, agent behavior, job board keys, and auto-submit. Values saved in Settings are stored locally in `personaldata/settings.json` and take precedence over environment variables; empty fields fall back to `.env.local`.
 
 ### AI Provider (required)
 
-Set the key either in `.env.local` or from the **Settings page** in the UI. A key saved in Settings is stored locally in `personaldata/settings.json` and takes precedence over environment variables.
+Set the key either in `.env.local` or from the **Settings page** in the UI.
 
 | Variable | Description |
 |---|---|
@@ -186,7 +186,7 @@ data/
 personaldata/
 ├── profile.json               # your base resume data
 ├── preferences.json           # titles, keywords, boards, thresholds, experience + freshness filters
-└── settings.json              # LLM key saved via the Settings page (optional)
+└── settings.json              # everything saved via the Settings page (optional)
 ```
 
 - `data/` and `personaldata/` are excluded from version control
