@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { spawn } from 'child_process'
 import path from 'path'
+import fs from 'fs/promises'
 import { loadStatus, saveStatus, readLogTail } from '@/lib/agent/store'
 import { validateEnv } from '@/lib/config'
 import { applySettingsToEnv, loadLlmSettings } from '@/lib/settings'
@@ -53,12 +54,22 @@ export async function POST(request: Request) {
       }
 
       const cwd = process.cwd()
+      // Don't leak the dev server's Node flags (NODE_OPTIONS / Next internals) into the agent
+      const { NODE_OPTIONS: _n, ...cleanEnv } = process.env
+      const childEnv = Object.fromEntries(
+        Object.entries(cleanEnv).filter(([k]) => !k.startsWith('__NEXT') && !k.startsWith('NEXT_'))
+      ) as NodeJS.ProcessEnv
+      void _n
+      // Capture crashes: the child is detached so its output would otherwise vanish
+      await fs.mkdir(path.join(cwd, 'data'), { recursive: true })
+      const errFd = await fs.open(path.join(cwd, 'data', 'agent-stderr.log'), 'a')
       const child = spawn(
         process.execPath,
         [path.join(cwd, 'node_modules', 'tsx', 'dist', 'cli.mjs'), path.join(cwd, 'scripts', 'agent.ts'), '--hours', String(hours)],
-        { cwd, detached: true, stdio: 'ignore', env: process.env }
+        { cwd, detached: true, stdio: ['ignore', errFd.fd, errFd.fd], env: childEnv }
       )
       child.unref()
+      child.on('spawn', () => void errFd.close())
 
       // Mark running right away so the dashboard flips state on the next poll
       // instead of waiting for the child to boot and write its own status.

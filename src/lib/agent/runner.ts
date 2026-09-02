@@ -74,9 +74,16 @@ export async function runAgent(
     )
   }
 
-  // Prevent two agents from running at once
+  // Prevent two agents from running at once. The dashboard pre-writes the status
+  // with the launcher's PID (tsx wrapper), which is our parent — not a rival agent.
   const existing = await loadStatus()
-  if (existing?.running && existing.pid && existing.pid !== process.pid && isProcessAlive(existing.pid)) {
+  if (
+    existing?.running &&
+    existing.pid &&
+    existing.pid !== process.pid &&
+    existing.pid !== process.ppid &&
+    isProcessAlive(existing.pid)
+  ) {
     throw new Error(`Agent is already running (pid ${existing.pid}). Stop it first.`)
   }
 
