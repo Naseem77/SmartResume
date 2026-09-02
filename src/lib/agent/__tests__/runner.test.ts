@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fs from 'fs/promises'
+import { spawn } from 'child_process'
 import os from 'os'
 import path from 'path'
 import type { GenerateResult, Profile } from '@/types/resume'
@@ -147,15 +148,20 @@ describe('runAgent', () => {
 
   it('refuses to start when another agent is already running', async () => {
     await fs.mkdir(path.join(tmpDir, 'data'), { recursive: true })
-    // parent process pid: alive and guaranteed different from this process
-    await fs.writeFile(
-      path.join(tmpDir, 'data', 'agent-status.json'),
-      JSON.stringify({ running: true, pid: process.ppid, updatedAt: new Date().toISOString() })
-    )
-    const deps = makeDeps()
-    await expect(runAgent({ hours: 1, pollMinutes: 1, maxApplications: 5 }, deps)).rejects.toThrow(
-      /already running/
-    )
+    // A real, unrelated live process (the parent PID is treated as our launcher, not a rival)
+    const other = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 30000)'])
+    try {
+      await fs.writeFile(
+        path.join(tmpDir, 'data', 'agent-status.json'),
+        JSON.stringify({ running: true, pid: other.pid, updatedAt: new Date().toISOString() })
+      )
+      const deps = makeDeps()
+      await expect(runAgent({ hours: 1, pollMinutes: 1, maxApplications: 5 }, deps)).rejects.toThrow(
+        /already running/
+      )
+    } finally {
+      other.kill()
+    }
   })
 
   it('wakes from the between-cycle sleep immediately on SIGTERM', async () => {
