@@ -60,6 +60,23 @@ export async function POST(request: Request) {
       )
       child.unref()
 
+      // Mark running right away so the dashboard flips state on the next poll
+      // instead of waiting for the child to boot and write its own status.
+      const startedAt = new Date()
+      await saveStatus({
+        running: true,
+        pid: child.pid,
+        startedAt: startedAt.toISOString(),
+        endsAt: new Date(startedAt.getTime() + hours * 3600_000).toISOString(),
+        hours,
+        cycle: 0,
+        jobsSeen: 0,
+        jobsMatched: 0,
+        applications: 0,
+        updatedAt: startedAt.toISOString(),
+        lastActivity: 'Starting agent…',
+      })
+
       return NextResponse.json({ started: true, pid: child.pid, hours })
     }
 
@@ -69,6 +86,17 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Agent is not running' }, { status: 409 })
       }
       process.kill(status.pid, 'SIGTERM')
+      // Wait for the process to exit (up to 10s) so a following Start doesn't see it as still running
+      for (let i = 0; i < 100 && isProcessAlive(status.pid); i++) {
+        await new Promise((r) => setTimeout(r, 100))
+      }
+      if (isProcessAlive(status.pid)) process.kill(status.pid, 'SIGKILL')
+      const latest = await loadStatus()
+      if (latest?.running) {
+        latest.running = false
+        latest.lastActivity = 'Stopped by user'
+        await saveStatus(latest)
+      }
       return NextResponse.json({ stopped: true })
     }
 

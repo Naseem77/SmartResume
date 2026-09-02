@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "postinstall": "puppeteer browsers install chrome",
     "lint": "eslint",
     "agent": "tsx scripts/agent.ts",
     "test": "vitest run",

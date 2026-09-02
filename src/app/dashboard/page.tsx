@@ -65,7 +65,7 @@ function AgentPanel({
 }: {
   status: AgentStatus | null
   log: string[]
-  onChanged: () => void
+  onChanged: () => void | Promise<void>
 }) {
   const [hours, setHours] = useState(3)
   const [busy, setBusy] = useState(false)
@@ -86,11 +86,16 @@ function AgentPanel({
         const data = await res.json().catch(() => ({}))
         setError(data.error || 'Something went wrong')
       }
-      onChanged()
+      await onChanged()
     } finally {
       setBusy(false)
     }
   }
+
+  // Clear a stale error once the agent state actually changes
+  useEffect(() => {
+    setError('')
+  }, [running])
 
   const metrics = [
     { label: 'Cycles', value: status?.cycle ?? 0 },
@@ -135,7 +140,7 @@ function AgentPanel({
               disabled={busy}
               className="px-4 py-2 rounded-lg bg-rose-500/15 border border-rose-500/40 text-rose-600 dark:text-rose-300 text-sm font-semibold hover:bg-rose-500/25 transition-colors disabled:opacity-50"
             >
-              Stop Agent
+              {busy ? 'Stopping…' : 'Stop Agent'}
             </button>
           ) : (
             <>
@@ -157,7 +162,7 @@ function AgentPanel({
                 disabled={busy}
                 className="px-5 py-2 rounded-lg bg-emerald-500 text-white dark:text-zinc-950 text-sm font-bold hover:bg-emerald-400 transition-colors disabled:opacity-50 shadow-lg shadow-emerald-500/20"
               >
-                ▶ Start Agent
+                {busy ? 'Starting…' : '▶ Start Agent'}
               </button>
             </>
           )}
