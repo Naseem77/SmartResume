@@ -96,9 +96,17 @@ export async function processJob(
     log
   )
 
-  // 3. PDF
+  // 3. PDF — non-fatal: a missing browser must not discard a matched job.
+  // The HTML is always saved, and the dashboard can render the PDF on demand.
   const html = buildResumeHtml(result.resume)
-  const pdfBuffer = await pdf(html)
+  let pdfBuffer: Buffer | undefined
+  let pdfError: string | undefined
+  try {
+    pdfBuffer = await pdf(html)
+  } catch (error) {
+    pdfError = error instanceof Error ? error.message : String(error)
+    log(`PDF render failed (saving without PDF): ${pdfError.split('\n')[0]}`)
+  }
 
   // 3b. Optional cover letter
   let coverLetter: string | undefined
@@ -125,6 +133,12 @@ export async function processJob(
       via: 'none',
       notes: 'Collected by the agent. Click Apply on the dashboard when you are ready.',
     }
+  } else if (!pdfBuffer) {
+    applyResult = {
+      status: 'needs_manual',
+      via: 'none',
+      notes: `Resume PDF could not be rendered (${pdfError?.split('\n')[0]}). Run \`npx puppeteer browsers install chrome\`, then apply from the dashboard.`,
+    }
   } else {
     const applier = pickApplier(job)
     log(`Applying via ${applier.id}`)
@@ -143,7 +157,7 @@ export async function processJob(
     atsScore: result.atsScore,
     atsAttempts: attempts,
     resume: result.resume,
-    resumePdfPath,
+    resumePdfPath: pdfBuffer ? resumePdfPath : '',
     coverLetter,
     notes: applyResult.notes,
   }

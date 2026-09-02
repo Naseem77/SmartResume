@@ -17,7 +17,14 @@ export async function applyCollectedApplication(id: string): Promise<Application
   if (record.status === 'applied') throw new Error('Already applied')
 
   const resumePdfPath = path.join(applicationDir(id), 'resume.pdf')
-  const resumePdf = await fs.readFile(resumePdfPath)
+  let resumePdf: Buffer
+  try {
+    resumePdf = await fs.readFile(resumePdfPath)
+  } catch {
+    // PDF missing (e.g. Chrome unavailable when collected) — render it now.
+    resumePdf = await renderPdf(buildResumeHtml(record.resume))
+    await saveApplication(record, resumePdf)
+  }
 
   const applier = pickApplier(record.job)
   const result = await applier.apply({ job: record.job, resumePdf, resumePdfPath })

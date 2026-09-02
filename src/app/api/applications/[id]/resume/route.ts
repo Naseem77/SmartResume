@@ -3,6 +3,7 @@ import fs from 'fs/promises'
 import path from 'path'
 import { applicationDir, getApplication } from '@/lib/agent/store'
 import { updateApplicationResume } from '@/lib/agent/apply'
+import { renderPdf } from '@/lib/pdf'
 import type { TailoredResume } from '@/types/resume'
 
 export async function GET(
@@ -19,7 +20,17 @@ export async function GET(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
   try {
-    const pdf = await fs.readFile(path.join(applicationDir(id), 'resume.pdf'))
+    const dir = applicationDir(id)
+    const pdfPath = path.join(dir, 'resume.pdf')
+    let pdf: Buffer
+    try {
+      pdf = await fs.readFile(pdfPath)
+    } catch {
+      // PDF was not rendered at collection time (e.g. Chrome missing); render now from the saved HTML.
+      const html = await fs.readFile(path.join(dir, 'resume.html'), 'utf-8')
+      pdf = await renderPdf(html)
+      await fs.writeFile(pdfPath, pdf)
+    }
     return new NextResponse(new Uint8Array(pdf), {
       headers: {
         'Content-Type': 'application/pdf',
